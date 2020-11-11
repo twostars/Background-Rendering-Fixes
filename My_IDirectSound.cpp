@@ -40,14 +40,21 @@ ULONG My_IDirectSound::Release()
 // IDirectSound methods
 HRESULT My_IDirectSound::CreateSoundBuffer(LPCDSBUFFERDESC pcDSBufferDesc, LPDIRECTSOUNDBUFFER* ppDSBuffer, LPUNKNOWN pUnkOuter)
 {
-	DSBUFFERDESC bufferDesc = { 0 };
-	if (pcDSBufferDesc != nullptr)
+	void* bufferDesc = nullptr;
+	if (pcDSBufferDesc != nullptr
+		&& pcDSBufferDesc->dwSize != 0)
 	{
-		memcpy(&bufferDesc, pcDSBufferDesc, sizeof(DSBUFFERDESC));
-		bufferDesc.dwFlags |= DSBCAPS_GLOBALFOCUS;
+		bufferDesc = new uint8_t[pcDSBufferDesc->dwSize];
+		memcpy(bufferDesc, pcDSBufferDesc, pcDSBufferDesc->dwSize);
+		((LPDSBUFFERDESC)bufferDesc)->dwFlags |= DSBCAPS_GLOBALFOCUS;
 	}
 
-	return m_proxy->CreateSoundBuffer(&bufferDesc, ppDSBuffer, pUnkOuter);
+	HRESULT hr = m_proxy->CreateSoundBuffer((LPCDSBUFFERDESC)bufferDesc, ppDSBuffer, pUnkOuter);
+
+	if (bufferDesc != nullptr)
+		delete bufferDesc;
+
+	return hr;
 }
 
 HRESULT My_IDirectSound::GetCaps(LPDSCAPS pDSCaps)
