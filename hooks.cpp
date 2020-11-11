@@ -13,29 +13,29 @@ LRESULT CALLBACK WindowProc(
 	_In_ LPARAM lParam
 );
 
-DETOUR_TRAMPOLINE(LONG_PTR WINAPI Real_SetWindowLongPtrA(
+LONG_PTR (WINAPI *Real_SetWindowLongPtrA)(
 	HWND     hWnd,
 	int      nIndex,
 	LONG_PTR dwNewLong
-), SetWindowLongPtrA);
+) = 0;
 
-DETOUR_TRAMPOLINE(LONG_PTR WINAPI Real_SetWindowLongPtrW(
+LONG_PTR (WINAPI *Real_SetWindowLongPtrW)(
 	HWND     hWnd,
 	int      nIndex,
 	LONG_PTR dwNewLong
-), SetWindowLongPtrW);
+) = 0;
 
-DETOUR_TRAMPOLINE(LONG_PTR WINAPI Real_GetWindowLongPtrA(
+LONG_PTR (WINAPI *Real_GetWindowLongPtrA)(
 	HWND hWnd,
 	int  nIndex
-), GetWindowLongPtrA);
+) = 0;
 
-DETOUR_TRAMPOLINE(LONG_PTR WINAPI Real_GetWindowLongPtrW(
+LONG_PTR (WINAPI *Real_GetWindowLongPtrW)(
 	HWND hWnd,
 	int  nIndex
-), GetWindowLongPtrW);
+) = 0;
 
-DETOUR_TRAMPOLINE(HWND WINAPI Real_CreateWindowExW(
+HWND (WINAPI *Real_CreateWindowExW)(
 	DWORD     dwExStyle,
 	LPCWSTR   lpClassName,
 	LPCWSTR   lpWindowName,
@@ -48,23 +48,23 @@ DETOUR_TRAMPOLINE(HWND WINAPI Real_CreateWindowExW(
 	HMENU     hMenu,
 	HINSTANCE hInstance,
 	LPVOID    lpParam
-), CreateWindowExW);
+) = 0;
 
-DETOUR_TRAMPOLINE(BOOL WINAPI Real_DestroyWindow(
+BOOL (WINAPI *Real_DestroyWindow)(
 	HWND hWnd
-), DestroyWindow);
+) = 0;
 
-DETOUR_TRAMPOLINE_EMPTY(HRESULT WINAPI Real_DirectSoundCreate(
+HRESULT (WINAPI *Real_DirectSoundCreate)(
 	LPCGUID pcGuidDevice,
 	LPDIRECTSOUND* ppDS,
 	LPUNKNOWN pUnkOuter
-));
+) = 0;
 
-DETOUR_TRAMPOLINE_EMPTY(HRESULT WINAPI Real_DirectSoundCreate8(
+HRESULT (WINAPI *Real_DirectSoundCreate8)(
 	LPCGUID pcGuidDevice,
 	LPDIRECTSOUND8* ppDS,
 	LPUNKNOWN pUnkOuter
-));
+) = 0;
 
 LONG_PTR WINAPI hooked_SetWindowLongPtrA(
 	HWND     hWnd,
@@ -119,38 +119,27 @@ HRESULT WINAPI hooked_DirectSoundCreate8(
 
 void InstallHooks()
 {
-	DetourFunctionWithTrampoline((PBYTE)Real_SetWindowLongPtrA, (PBYTE)hooked_SetWindowLongPtrA);
-	DetourFunctionWithTrampoline((PBYTE)Real_SetWindowLongPtrW, (PBYTE)hooked_SetWindowLongPtrW);
-	DetourFunctionWithTrampoline((PBYTE)Real_GetWindowLongPtrA, (PBYTE)hooked_GetWindowLongPtrA);
-	DetourFunctionWithTrampoline((PBYTE)Real_GetWindowLongPtrW, (PBYTE)hooked_GetWindowLongPtrW);
-	DetourFunctionWithTrampoline((PBYTE)Real_CreateWindowExW, (PBYTE)hooked_CreateWindowExW);
-	DetourFunctionWithTrampoline((PBYTE)Real_DestroyWindow, (PBYTE)hooked_DestroyWindow);
+	MH_CreateHook(SetWindowLongPtrA, hooked_SetWindowLongPtrA, (LPVOID*)&Real_SetWindowLongPtrA);
+	MH_CreateHook(SetWindowLongPtrW, hooked_SetWindowLongPtrW, (LPVOID*)&Real_SetWindowLongPtrW);
+	MH_CreateHook(GetWindowLongPtrA, hooked_GetWindowLongPtrA, (LPVOID*)&Real_GetWindowLongPtrA);
+	MH_CreateHook(GetWindowLongPtrW, hooked_GetWindowLongPtrW, (LPVOID*)&Real_GetWindowLongPtrW);
+	MH_CreateHook(CreateWindowExW, hooked_CreateWindowExW, (LPVOID*)&Real_CreateWindowExW);
+	MH_CreateHook(DestroyWindow, hooked_DestroyWindow, (LPVOID*)&Real_DestroyWindow);
 
-	PBYTE fnDirectSoundCreate = DetourFindFunction("DSOUND", "DirectSoundCreate");
+	FARPROC fnDirectSoundCreate = GetProcAddress(GetModuleHandle(L"DSOUND"), "DirectSoundCreate");
 	if (fnDirectSoundCreate != nullptr)
-		DetourFunctionWithEmptyTrampoline((PBYTE)Real_DirectSoundCreate, fnDirectSoundCreate, (PBYTE)hooked_DirectSoundCreate);
+		MH_CreateHook(fnDirectSoundCreate, hooked_DirectSoundCreate, (LPVOID*)&Real_DirectSoundCreate);
 
-	PBYTE fnDirectSoundCreate8 = DetourFindFunction("DSOUND", "DirectSoundCreate8");
+	FARPROC fnDirectSoundCreate8 = GetProcAddress(GetModuleHandle(L"DSOUND"), "DirectSoundCreate8");
 	if (fnDirectSoundCreate8 != nullptr)
-		DetourFunctionWithEmptyTrampoline((PBYTE)Real_DirectSoundCreate8, fnDirectSoundCreate8, (PBYTE)hooked_DirectSoundCreate8);
+		MH_CreateHook(fnDirectSoundCreate8, hooked_DirectSoundCreate8, (LPVOID*)&Real_DirectSoundCreate8);
+	
+	MH_EnableHook(MH_ALL_HOOKS);
 }
 
 void RemoveHooks()
 {
-	DetourRemoveWithTrampoline((PBYTE)Real_SetWindowLongPtrA, (PBYTE)hooked_SetWindowLongPtrA);
-	DetourRemoveWithTrampoline((PBYTE)Real_SetWindowLongPtrW, (PBYTE)hooked_SetWindowLongPtrW);
-	DetourRemoveWithTrampoline((PBYTE)Real_GetWindowLongPtrA, (PBYTE)hooked_GetWindowLongPtrA);
-	DetourRemoveWithTrampoline((PBYTE)Real_GetWindowLongPtrW, (PBYTE)hooked_GetWindowLongPtrW);
-	DetourRemoveWithTrampoline((PBYTE)Real_CreateWindowExW, (PBYTE)hooked_CreateWindowExW);
-	DetourRemoveWithTrampoline((PBYTE)Real_DestroyWindow, (PBYTE)hooked_DestroyWindow);
-
-	PBYTE fnDirectSoundCreate = DetourFindFunction("DSOUND", "DirectSoundCreate");
-	if (fnDirectSoundCreate != nullptr)
-		DetourRemoveWithTrampoline((PBYTE)Real_DirectSoundCreate, (PBYTE)hooked_DirectSoundCreate);
-
-	PBYTE fnDirectSoundCreate8 = DetourFindFunction("DSOUND", "DirectSoundCreate8");
-	if (fnDirectSoundCreate8 != nullptr)
-		DetourRemoveWithTrampoline((PBYTE)Real_DirectSoundCreate8, (PBYTE)hooked_DirectSoundCreate8);
+	MH_DisableHook(MH_ALL_HOOKS);
 }
 
 LONG_PTR WINAPI hooked_SetWindowLongPtrA(

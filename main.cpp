@@ -6,9 +6,18 @@ bool g_loaded = false;
 
 static const std::set<std::wstring, ci_less> s_expectedFilenames =
 {
-	L"ed6_win",		// The Legend of Heroes: Trails in the Sky FC
-	L"ed6_win_DX9",	// The Legend of Heroes: Trails in the Sky FC
-	L"ed8"			// The Legend of Heroes: Trails of Cold Steel 1
+	L"ed6_win",			// The Legend of Heroes: Trails in the Sky FC
+	L"ed6_win_DX9",		// The Legend of Heroes: Trails in the Sky FC
+	L"ed6_win2",		// The Legend of Heroes: Trails in the Sky SC
+	L"ed6_win2_DX9",	// The Legend of Heroes: Trails in the Sky SC
+	L"ed6_win3",		// The Legend of Heroes: Trails in the Sky the 3rd
+	L"ed6_win3_DX9",	// The Legend of Heroes: Trails in the Sky the 3rd
+	L"ed8",				// The Legend of Heroes: Trails of Cold Steel I
+	L"ed8jp",			// The Legend of Heroes: Trails of Cold Steel I
+	L"ed8_2_PC_US",		// The Legend of Heroes: Trails of Cold Steel II
+	L"ed8_2_PC_JP",		// The Legend of Heroes: Trails of Cold Steel II
+	L"ed8_3_PC",		// The Legend of Heroes: Trails of Cold Steel III
+	L"ed8_3_PC_JP"		// The Legend of Heroes: Trails of Cold Steel III
 };
 
 static const std::set<std::wstring> s_partialPaths =
@@ -62,6 +71,7 @@ void InitInstance(HANDLE hModule)
 	if (g_loaded)
 		return;
 
+	MH_Initialize();
 	InstallHooks();
 	g_loaded = true;
 }
@@ -72,5 +82,6 @@ void ExitInstance(HANDLE hModule)
 		return;
 
 	RemoveHooks();
+	MH_Uninitialize();
 	g_loaded = false;
 }

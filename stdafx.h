@@ -10,7 +10,5 @@
 #include <set>
 #include <mutex>
 
-#define DETOURS_INTERNAL 1
-#include "detours/detours.h"
-
+#include "thirdparty/minhook/include/MinHook.h"
 #include "WindowData.h"
