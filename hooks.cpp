@@ -33,6 +33,10 @@ DETOUR_TRAMPOLINE(LONG_PTR WINAPI Real_GetWindowLongPtrW(
 	int  nIndex
 ), GetWindowLongPtrW);
 
+DETOUR_TRAMPOLINE(BOOL WINAPI Real_DestroyWindow(
+	HWND hWnd
+), DestroyWindow);
+
 LONG_PTR WINAPI hooked_SetWindowLongPtrA(
 	HWND     hWnd,
 	int      nIndex,
@@ -55,12 +59,17 @@ LONG_PTR WINAPI hooked_GetWindowLongPtrW(
 	int  nIndex
 );
 
+BOOL WINAPI hooked_DestroyWindow(
+	HWND hWnd
+);
+
 void InstallHooks()
 {
 	DetourFunctionWithTrampoline((PBYTE)Real_SetWindowLongPtrA, (PBYTE)hooked_SetWindowLongPtrA);
 	DetourFunctionWithTrampoline((PBYTE)Real_SetWindowLongPtrW, (PBYTE)hooked_SetWindowLongPtrW);
 	DetourFunctionWithTrampoline((PBYTE)Real_GetWindowLongPtrA, (PBYTE)hooked_GetWindowLongPtrA);
 	DetourFunctionWithTrampoline((PBYTE)Real_GetWindowLongPtrW, (PBYTE)hooked_GetWindowLongPtrW);
+	DetourFunctionWithTrampoline((PBYTE)Real_DestroyWindow, (PBYTE)hooked_DestroyWindow);
 }
 
 void RemoveHooks()
@@ -69,6 +78,7 @@ void RemoveHooks()
 	DetourRemoveWithTrampoline((PBYTE)Real_SetWindowLongPtrW, (PBYTE)hooked_SetWindowLongPtrW);
 	DetourRemoveWithTrampoline((PBYTE)Real_GetWindowLongPtrA, (PBYTE)hooked_GetWindowLongPtrA);
 	DetourRemoveWithTrampoline((PBYTE)Real_GetWindowLongPtrW, (PBYTE)hooked_GetWindowLongPtrW);
+	DetourRemoveWithTrampoline((PBYTE)Real_DestroyWindow, (PBYTE)hooked_DestroyWindow);
 }
 
 LONG_PTR WINAPI hooked_SetWindowLongPtrA(
@@ -133,4 +143,19 @@ LONG_PTR WINAPI hooked_GetWindowLongPtrW(
 	}
 
 	return Real_GetWindowLongPtrW(hWnd, nIndex);
+}
+
+BOOL WINAPI hooked_DestroyWindow(
+	HWND hWnd
+)
+{
+	BOOL r = Real_DestroyWindow(hWnd);
+
+	// Remove this immediately afterwards so WindowProc still knows what to call.
+	{
+		std::lock_guard<std::recursive_mutex> lock(g_lock);
+		g_windowData.erase(hWnd);
+	}
+
+	return r;
 }
