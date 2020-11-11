@@ -6,6 +6,12 @@
     <ClCompile Include="utils.cpp" />
     <ClCompile Include="hooks.cpp" />
     <ClCompile Include="WndProc.cpp" />
+    <ClCompile Include="My_IDirectSound.cpp">
+      <Filter>DirectSound</Filter>
+    </ClCompile>
+    <ClCompile Include="My_IDirectSound8.cpp">
+      <Filter>DirectSound</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -15,10 +21,19 @@
     <ClInclude Include="hooks.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="WindowData.h" />
+    <ClInclude Include="My_IDirectSound.h">
+      <Filter>DirectSound</Filter>
+    </ClInclude>
+    <ClInclude Include="My_IDirectSound8.h">
+      <Filter>DirectSound</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="detours">
       <UniqueIdentifier>{15ae7fdf-fbc9-4793-b17a-1c0fe8163b60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DirectSound">
+      <UniqueIdentifier>{afa63fa3-91b7-46c1-9641-9e707372e25c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

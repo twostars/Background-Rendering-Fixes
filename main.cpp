@@ -6,7 +6,9 @@ bool g_loaded = false;
 
 static const std::set<std::wstring, ci_less> s_expectedFilenames =
 {
-	L"ed8" // Trails of Cold Steel 1
+	L"ed6_win",		// The Legend of Heroes: Trails in the Sky FC
+	L"ed6_win_DX9",	// The Legend of Heroes: Trails in the Sky FC
+	L"ed8"			// The Legend of Heroes: Trails of Cold Steel 1
 };
 
 static const std::set<std::wstring> s_partialPaths =

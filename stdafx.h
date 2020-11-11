@@ -1,9 +1,9 @@
 #pragma once
 
 #define VC_EXTRALEAN 1
-#define WIN32_LEAN_AND_MEAN 1
 
 #include <Windows.h>
+#include <dsound.h>
 #include <Shlwapi.h>
 #include <map>
 #include <vector>
