@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="utils.cpp" />
+    <ClCompile Include="hooks.cpp" />
+    <ClCompile Include="WndProc.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="detours\detours.h">
+      <Filter>detours</Filter>
+    </ClInclude>
+    <ClInclude Include="hooks.h" />
+    <ClInclude Include="utils.h" />
+    <ClInclude Include="WindowData.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="detours">
+      <UniqueIdentifier>{15ae7fdf-fbc9-4793-b17a-1c0fe8163b60}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
