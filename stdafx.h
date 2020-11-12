@@ -12,3 +12,7 @@
 
 #include "thirdparty/minhook/include/MinHook.h"
 #include "WindowData.h"
+
+extern std::map<HWND, WindowData> g_windowData;
+extern bool g_applicationInFocus;
+extern std::recursive_mutex g_lock;

@@ -28,11 +28,8 @@ ULONG My_IDirectSound::AddRef()
 ULONG My_IDirectSound::Release()
 {
 	ULONG ref = m_proxy->Release();
-
 	if (ref == 0)
-	{
 		delete this;
-	}
 
 	return ref;
 }

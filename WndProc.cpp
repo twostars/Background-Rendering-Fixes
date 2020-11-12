@@ -1,6 +1,8 @@
 #include "stdafx.h"
+#include "utils.h"
 
 std::map<HWND, WindowData> g_windowData;
+bool g_applicationInFocus = true;
 std::recursive_mutex g_lock;
 
 LRESULT CALLBACK WindowProc(
@@ -19,6 +21,8 @@ LRESULT CALLBACK WindowProc(
 
 	if (uMsg == WM_ACTIVATEAPP)
 	{
+		g_applicationInFocus = (wParam != 0);
+
 		// We should exempt any app lost focus messages
 		if (wParam == 0
 			// or any re-activations.
