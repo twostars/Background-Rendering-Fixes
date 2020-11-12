@@ -74,6 +74,10 @@ SHORT (WINAPI *Real_GetKeyState)(
 	int nVirtKey
 ) = 0;
 
+BOOL (WINAPI *Real_GetKeyboardState)(
+	PBYTE lpKeyState
+) = 0;
+
 HRESULT (WINAPI *Real_DirectSoundCreate)(
 	LPCGUID pcGuidDevice,
 	LPDIRECTSOUND* ppDS,
@@ -150,6 +154,10 @@ SHORT WINAPI hooked_GetKeyState(
 	int nVirtKey
 );
 
+BOOL WINAPI hooked_GetKeyboardState(
+	PBYTE lpKeyState
+);
+
 HRESULT WINAPI hooked_DirectSoundCreate(
 	LPCGUID pcGuidDevice,
 	LPDIRECTSOUND* ppDS,
@@ -171,6 +179,7 @@ void InstallHooks()
 	MH_CreateHook(DestroyWindow, hooked_DestroyWindow, (LPVOID*)&Real_DestroyWindow);
 	MH_CreateHook(GetAsyncKeyState, hooked_GetAsyncKeyState, (LPVOID*)&Real_GetAsyncKeyState);
 	MH_CreateHook(GetKeyState, hooked_GetKeyState, (LPVOID*)&Real_GetKeyState);
+	MH_CreateHook(GetKeyboardState, hooked_GetKeyboardState, (LPVOID*)&Real_GetKeyboardState);
 
 	FARPROC fnDirectSoundCreate = GetProcAddress(GetModuleHandle(L"DSOUND"), "DirectSoundCreate");
 	if (fnDirectSoundCreate != nullptr)
@@ -373,6 +382,18 @@ SHORT WINAPI hooked_GetKeyState(int nVirtKey)
 		return 0;
 
 	return Real_GetKeyState(nVirtKey);
+}
+
+BOOL WINAPI hooked_GetKeyboardState(PBYTE lpKeyState)
+{
+	if (!g_applicationInFocus)
+	{
+		// MSDN states this is a 256 byte array.
+		memset(lpKeyState, 0, 256);
+		return TRUE;
+	}
+
+	return Real_GetKeyboardState(lpKeyState);
 }
 
 HRESULT WINAPI hooked_DirectSoundCreate(
