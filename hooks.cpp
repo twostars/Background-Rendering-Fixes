@@ -32,21 +32,6 @@ LONG_PTR (WINAPI *Real_GetWindowLongPtrW)(
 	int  nIndex
 ) = 0;
 
-HWND (WINAPI *Real_CreateWindowExA)(
-	DWORD     dwExStyle,
-	LPCSTR    lpClassName,
-	LPCSTR    lpWindowName,
-	DWORD     dwStyle,
-	int       X,
-	int       Y,
-	int       nWidth,
-	int       nHeight,
-	HWND      hWndParent,
-	HMENU     hMenu,
-	HINSTANCE hInstance,
-	LPVOID    lpParam
-) = 0;
-
 HWND (WINAPI *Real_CreateWindowExW)(
 	DWORD     dwExStyle,
 	LPCWSTR   lpClassName,
@@ -112,21 +97,6 @@ LONG_PTR WINAPI hooked_GetWindowLongPtrW(
 	int  nIndex
 );
 
-HWND WINAPI hooked_CreateWindowExA(
-	DWORD      dwExStyle,
-	LPCSTR     lpClassName,
-	LPCSTR     lpWindowName,
-	DWORD      dwStyle,
-	int        X,
-	int        Y,
-	int        nWidth,
-	int        nHeight,
-	HWND       hWndParent,
-	HMENU      hMenu,
-	HINSTANCE  hInstance,
-	LPVOID     lpParam
-);
-
 HWND WINAPI hooked_CreateWindowExW(
 	DWORD      dwExStyle,
 	LPCWSTR    lpClassName,
@@ -174,7 +144,6 @@ void InstallHooks()
 	MH_CreateHook(SetWindowLongPtrW, hooked_SetWindowLongPtrW, (LPVOID*)&Real_SetWindowLongPtrW);
 	MH_CreateHook(GetWindowLongPtrA, hooked_GetWindowLongPtrA, (LPVOID*)&Real_GetWindowLongPtrA);
 	MH_CreateHook(GetWindowLongPtrW, hooked_GetWindowLongPtrW, (LPVOID*)&Real_GetWindowLongPtrW);
-	MH_CreateHook(CreateWindowExA, hooked_CreateWindowExA, (LPVOID*)&Real_CreateWindowExA);
 	MH_CreateHook(CreateWindowExW, hooked_CreateWindowExW, (LPVOID*)&Real_CreateWindowExW);
 	MH_CreateHook(DestroyWindow, hooked_DestroyWindow, (LPVOID*)&Real_DestroyWindow);
 	MH_CreateHook(GetAsyncKeyState, hooked_GetAsyncKeyState, (LPVOID*)&Real_GetAsyncKeyState);
@@ -261,51 +230,6 @@ LONG_PTR WINAPI hooked_GetWindowLongPtrW(
 	}
 
 	return Real_GetWindowLongPtrW(hWnd, nIndex);
-}
-
-HWND WINAPI hooked_CreateWindowExA(
-	DWORD      dwExStyle,
-	LPCSTR     lpClassName,
-	LPCSTR     lpWindowName,
-	DWORD      dwStyle,
-	int        X,
-	int        Y,
-	int        nWidth,
-	int        nHeight,
-	HWND       hWndParent,
-	HMENU      hMenu,
-	HINSTANCE  hInstance,
-	LPVOID     lpParam
-)
-{
-	HWND hWnd = Real_CreateWindowExA(
-		dwExStyle,
-		lpClassName,
-		lpWindowName,
-		dwStyle,
-		X,
-		Y,
-		nWidth,
-		nHeight,
-		hWndParent,
-		hMenu,
-		hInstance,
-		lpParam
-	);
-
-	if (hWnd != nullptr)
-	{
-		WNDPROC originalProc = (WNDPROC)GetWindowLongPtrA(hWnd, GWLP_WNDPROC);
-		if (originalProc != nullptr
-			&& originalProc != WindowProc)
-		{
-			std::lock_guard<std::recursive_mutex> lock(g_lock);
-			g_windowData[hWnd].OriginalProc = originalProc;
-			Real_SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR)&WindowProc);
-		}
-	}
-
-	return hWnd;
 }
 
 HWND WINAPI hooked_CreateWindowExW(
