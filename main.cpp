@@ -53,6 +53,13 @@ void InitInstance(HANDLE hModule)
 	if (g_loaded)
 		return;
 
+#if defined(_DEBUG)
+	AllocConsole();
+	freopen("CONIN$", "r", stdin);
+	freopen("CONOUT$", "w", stdout);
+	freopen("CONOUT$", "w", stderr);
+#endif
+
 	MH_Initialize();
 	InstallHooks();
 	g_loaded = true;
@@ -65,5 +72,10 @@ void ExitInstance(HANDLE hModule)
 
 	RemoveHooks();
 	MH_Uninitialize();
+
+#if defined(_DEBUG)
+	FreeConsole();
+#endif
+
 	g_loaded = false;
 }
