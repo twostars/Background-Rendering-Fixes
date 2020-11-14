@@ -2,6 +2,7 @@
 #include "hooks.h"
 #include "My_IDirectSound.h"
 #include "My_IDirectSound8.h"
+#include "My_IXAudio20.h"
 
 LRESULT CALLBACK WindowProc(
 	_In_ HWND   hwnd,
@@ -61,6 +62,14 @@ SHORT (WINAPI *Real_GetKeyState)(
 
 BOOL (WINAPI *Real_GetKeyboardState)(
 	PBYTE lpKeyState
+) = 0;
+
+HRESULT (WINAPI *Real_CoCreateInstance)(
+	REFCLSID  rclsid,
+	LPUNKNOWN pUnkOuter,
+	DWORD     dwClsContext,
+	REFIID    riid,
+	LPVOID*   ppv
 ) = 0;
 
 HRESULT (WINAPI *Real_DirectSoundCreate)(
@@ -128,6 +137,14 @@ BOOL WINAPI hooked_GetKeyboardState(
 	PBYTE lpKeyState
 );
 
+HRESULT WINAPI hooked_CoCreateInstance(
+	REFCLSID  rclsid,
+	LPUNKNOWN pUnkOuter,
+	DWORD     dwClsContext,
+	REFIID    riid,
+	LPVOID*   ppv
+);
+
 HRESULT WINAPI hooked_DirectSoundCreate(
 	LPCGUID pcGuidDevice,
 	LPDIRECTSOUND* ppDS,
@@ -149,6 +166,7 @@ void InstallHooks()
 	MH_CreateHook(GetAsyncKeyState, hooked_GetAsyncKeyState, (LPVOID*)&Real_GetAsyncKeyState);
 	MH_CreateHook(GetKeyState, hooked_GetKeyState, (LPVOID*)&Real_GetKeyState);
 	MH_CreateHook(GetKeyboardState, hooked_GetKeyboardState, (LPVOID*)&Real_GetKeyboardState);
+	MH_CreateHook(CoCreateInstance, hooked_CoCreateInstance, (LPVOID*)&Real_CoCreateInstance);
 
 	FARPROC fnDirectSoundCreate = GetProcAddress(GetModuleHandle(L"DSOUND"), "DirectSoundCreate");
 	if (fnDirectSoundCreate != nullptr)
@@ -318,6 +336,42 @@ BOOL WINAPI hooked_GetKeyboardState(PBYTE lpKeyState)
 	}
 
 	return Real_GetKeyboardState(lpKeyState);
+}
+
+HRESULT WINAPI hooked_CoCreateInstance(
+	REFCLSID  rclsid,
+	LPUNKNOWN pUnkOuter,
+	DWORD     dwClsContext,
+	REFIID    riid,
+	LPVOID*   ppv
+)
+{
+	HRESULT hr = Real_CoCreateInstance(rclsid, pUnkOuter, dwClsContext, riid, ppv);
+	if (SUCCEEDED(hr))
+	{
+		if (riid == IID_IXAudio2)
+		{
+			if (rclsid == CLSID_XAudio20
+				|| rclsid == CLSID_XAudio20_Debug
+				|| rclsid == CLSID_XAudio21
+				|| rclsid == CLSID_XAudio21_Debug
+				|| rclsid == CLSID_XAudio22
+				|| rclsid == CLSID_XAudio22_Debug
+				|| rclsid == CLSID_XAudio23
+				|| rclsid == CLSID_XAudio23_Debug
+				|| rclsid == CLSID_XAudio24
+				|| rclsid == CLSID_XAudio24_Debug
+				|| rclsid == CLSID_XAudio25
+				|| rclsid == CLSID_XAudio25_Debug
+				|| rclsid == CLSID_XAudio26
+				|| rclsid == CLSID_XAudio26_Debug
+				|| rclsid == CLSID_XAudio27
+				|| rclsid == CLSID_XAudio27_Debug)
+				*ppv = new My_IXAudio20((IXAudio20*)*ppv);
+		}
+	}
+
+	return hr;
 }
 
 HRESULT WINAPI hooked_DirectSoundCreate(

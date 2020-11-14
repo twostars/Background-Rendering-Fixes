@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hooks.cpp" />
+    <ClCompile Include="IXAudio2.cpp" />
     <ClCompile Include="main.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -28,6 +29,7 @@
     </ClCompile>
     <ClCompile Include="My_IDirectSound.cpp" />
     <ClCompile Include="My_IDirectSound8.cpp" />
+    <ClCompile Include="My_IXAudio20.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -44,8 +46,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hooks.h" />
+    <ClInclude Include="IXAudio2.h" />
+    <ClInclude Include="IXAudio20.h" />
     <ClInclude Include="My_IDirectSound.h" />
     <ClInclude Include="My_IDirectSound8.h" />
+    <ClInclude Include="My_IXAudio20.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="thirdparty\minhook\include\MinHook.h" />
     <ClInclude Include="thirdparty\minhook\src\buffer.h" />

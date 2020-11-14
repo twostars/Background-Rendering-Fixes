@@ -3,7 +3,7 @@
 class My_IDirectSound8 : public IDirectSound8
 {
 public:
-	My_IDirectSound8(LPDIRECTSOUND8 pSound);
+	My_IDirectSound8(IDirectSound8* original);
 
 	// IUnknown methods
 	STDMETHOD(QueryInterface)(THIS_ _In_ REFIID, _Outptr_ LPVOID*);
@@ -24,5 +24,5 @@ public:
 	STDMETHOD(VerifyCertification)(THIS_ _Out_ LPDWORD pdwCertified); 
 
 protected:
-	LPDIRECTSOUND8 m_proxy;
+	IDirectSound8* m_original;
 };

@@ -3,6 +3,8 @@
 #define VC_EXTRALEAN 1
 
 #include <Windows.h>
+#include <guiddef.h>
+#include <mmreg.h>
 #include <dsound.h>
 #include <Shlwapi.h>
 #include <map>

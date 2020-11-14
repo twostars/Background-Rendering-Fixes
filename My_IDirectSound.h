@@ -3,7 +3,7 @@
 class My_IDirectSound : public IDirectSound
 {
 public:
-	My_IDirectSound(LPDIRECTSOUND pSound);
+	My_IDirectSound(IDirectSound* original);
 
 	// IUnknown methods
 	STDMETHOD(QueryInterface)(THIS_ _In_ REFIID, _Outptr_ LPVOID*);
@@ -21,5 +21,5 @@ public:
 	STDMETHOD(Initialize)(THIS_ _In_opt_ LPCGUID pcGuidDevice);
 
 protected:
-	LPDIRECTSOUND m_proxy;
+	IDirectSound* m_original;
 };

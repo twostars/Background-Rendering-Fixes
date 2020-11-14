@@ -20,10 +20,6 @@ static const std::set<std::wstring, ci_less> s_expectedFilenames =
 	L"ed8_3_PC_JP"		// The Legend of Heroes: Trails of Cold Steel III
 };
 
-static const std::set<std::wstring> s_partialPaths =
-{
-};
-
 bool IsApplicableProcess();
 void InitInstance(HANDLE hModule);
 void ExitInstance(HANDLE hModule);
@@ -42,28 +38,13 @@ int APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserve
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 		ExitInstance(hModule);
 
-    return TRUE;
+	return TRUE;
 }
 
 bool IsApplicableProcess()
 {
-	auto& path = GetExePath();
-	wchar_t filename[_MAX_FNAME] = { 0 };
-	_wsplitpath_s(path.c_str(), nullptr, 0, nullptr, 0, filename, _MAX_FNAME, nullptr, 0);
-
 	// Ideally we should check the filename if it's unique enough.
-	auto itr = s_expectedFilenames.find(filename);
-	if (itr != s_expectedFilenames.end())
-		return true;
-
-	// Partial matches are good too, as a second resort.
-	for (auto itr = s_partialPaths.begin(); itr != s_partialPaths.end(); ++itr)
-	{
-		if (StrStrIW(path.c_str(), (*itr).c_str()) != nullptr)
-			return true;
-	}
-
-	return false;
+	return (s_expectedFilenames.find(GetProcessName()) != s_expectedFilenames.end());
 }
 
 void InitInstance(HANDLE hModule)

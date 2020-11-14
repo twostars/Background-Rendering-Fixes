@@ -27,6 +27,12 @@
     <ClCompile Include="thirdparty\minhook\src\hde\hde64.c">
       <Filter>minhook\hde</Filter>
     </ClCompile>
+    <ClCompile Include="IXAudio2.cpp">
+      <Filter>XAudio2</Filter>
+    </ClCompile>
+    <ClCompile Include="My_IXAudio20.cpp">
+      <Filter>XAudio2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -63,6 +69,15 @@
     <ClInclude Include="thirdparty\minhook\src\hde\table64.h">
       <Filter>minhook\hde</Filter>
     </ClInclude>
+    <ClInclude Include="IXAudio2.h">
+      <Filter>XAudio2</Filter>
+    </ClInclude>
+    <ClInclude Include="IXAudio20.h">
+      <Filter>XAudio2</Filter>
+    </ClInclude>
+    <ClInclude Include="My_IXAudio20.h">
+      <Filter>XAudio2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="DirectSound">
@@ -73,6 +88,9 @@
     </Filter>
     <Filter Include="minhook\hde">
       <UniqueIdentifier>{38f00c3c-e9a2-4744-9f46-c235d15ca891}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XAudio2">
+      <UniqueIdentifier>{7f51640e-bf83-484c-821b-f198d8ddda56}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
