@@ -17,7 +17,8 @@ static const std::set<std::wstring, ci_less> s_expectedFilenames =
 	L"ed8_2_PC_US",		// The Legend of Heroes: Trails of Cold Steel II
 	L"ed8_2_PC_JP",		// The Legend of Heroes: Trails of Cold Steel II
 	L"ed8_3_PC",		// The Legend of Heroes: Trails of Cold Steel III
-	L"ed8_3_PC_JP"		// The Legend of Heroes: Trails of Cold Steel III
+	L"ed8_3_PC_JP",		// The Legend of Heroes: Trails of Cold Steel III
+	L"ffxiiiimg"		// Final Fantasy XIII
 };
 
 bool IsApplicableProcess();
