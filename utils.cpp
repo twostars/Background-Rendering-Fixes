@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "utils.h"
+#include <ShlObj.h>
 
 bool ci_less::operator()(const std::wstring& str1, const std::wstring& str2) const
 {
@@ -41,6 +42,25 @@ const std::wstring& GetProcessName()
 	}
 
 	return processName;
+}
+
+const std::wstring& GetRoamingAppDataPath()
+{
+	static bool loaded = false;
+	static std::wstring appDataPath;
+
+	if (!loaded)
+	{
+		PWSTR path;
+
+		auto ret = SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &path);
+		if (ret == S_OK)
+			appDataPath = path;
+
+		CoTaskMemFree(path);
+	}
+
+	return appDataPath;
 }
 
 bool ExtractDeviceIDFromMMDevPath(const std::wstring& path, std::wstring* deviceID)

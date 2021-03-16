@@ -4,7 +4,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="utils.cpp" />
-    <ClCompile Include="hooks.cpp" />
     <ClCompile Include="WndProc.cpp" />
     <ClCompile Include="My_IDirectSound.cpp">
       <Filter>DirectSound</Filter>
@@ -33,10 +32,11 @@
     <ClCompile Include="My_IXAudio20.cpp">
       <Filter>XAudio2</Filter>
     </ClCompile>
+    <ClCompile Include="hooks.cpp" />
+    <ClCompile Include="settings.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="hooks.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="WindowData.h" />
     <ClInclude Include="My_IDirectSound.h">
@@ -78,6 +78,8 @@
     <ClInclude Include="My_IXAudio20.h">
       <Filter>XAudio2</Filter>
     </ClInclude>
+    <ClInclude Include="hooks.h" />
+    <ClInclude Include="settings.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="DirectSound">

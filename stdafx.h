@@ -11,9 +11,11 @@
 #include <vector>
 #include <set>
 #include <mutex>
+#include <filesystem>
 
 #include "thirdparty/minhook/include/MinHook.h"
 #include "WindowData.h"
+#include "settings.h"
 
 extern std::map<HWND, WindowData> g_windowData;
 extern bool g_applicationInFocus;

@@ -157,25 +157,37 @@ HRESULT WINAPI hooked_DirectSoundCreate8(
 
 void InstallHooks()
 {
-	MH_CreateHook(SetWindowLongPtrA, hooked_SetWindowLongPtrA, (LPVOID*)&Real_SetWindowLongPtrA);
-	MH_CreateHook(SetWindowLongPtrW, hooked_SetWindowLongPtrW, (LPVOID*)&Real_SetWindowLongPtrW);
-	MH_CreateHook(GetWindowLongPtrA, hooked_GetWindowLongPtrA, (LPVOID*)&Real_GetWindowLongPtrA);
-	MH_CreateHook(GetWindowLongPtrW, hooked_GetWindowLongPtrW, (LPVOID*)&Real_GetWindowLongPtrW);
-	MH_CreateHook(CreateWindowExW, hooked_CreateWindowExW, (LPVOID*)&Real_CreateWindowExW);
-	MH_CreateHook(DestroyWindow, hooked_DestroyWindow, (LPVOID*)&Real_DestroyWindow);
-	MH_CreateHook(GetAsyncKeyState, hooked_GetAsyncKeyState, (LPVOID*)&Real_GetAsyncKeyState);
-	MH_CreateHook(GetKeyState, hooked_GetKeyState, (LPVOID*)&Real_GetKeyState);
-	MH_CreateHook(GetKeyboardState, hooked_GetKeyboardState, (LPVOID*)&Real_GetKeyboardState);
-	MH_CreateHook(CoCreateInstance, hooked_CoCreateInstance, (LPVOID*)&Real_CoCreateInstance);
+	if (g_settings.UseBackgroundRendering)
+	{
+		MH_CreateHook(SetWindowLongPtrA, hooked_SetWindowLongPtrA, (LPVOID*)&Real_SetWindowLongPtrA);
+		MH_CreateHook(SetWindowLongPtrW, hooked_SetWindowLongPtrW, (LPVOID*)&Real_SetWindowLongPtrW);
+		MH_CreateHook(GetWindowLongPtrA, hooked_GetWindowLongPtrA, (LPVOID*)&Real_GetWindowLongPtrA);
+		MH_CreateHook(GetWindowLongPtrW, hooked_GetWindowLongPtrW, (LPVOID*)&Real_GetWindowLongPtrW);
+		MH_CreateHook(CreateWindowExW, hooked_CreateWindowExW, (LPVOID*)&Real_CreateWindowExW);
+		MH_CreateHook(DestroyWindow, hooked_DestroyWindow, (LPVOID*)&Real_DestroyWindow);
+		MH_CreateHook(GetAsyncKeyState, hooked_GetAsyncKeyState, (LPVOID*)&Real_GetAsyncKeyState);
+		MH_CreateHook(GetKeyState, hooked_GetKeyState, (LPVOID*)&Real_GetKeyState);
+		MH_CreateHook(GetKeyboardState, hooked_GetKeyboardState, (LPVOID*)&Real_GetKeyboardState);
+	}
 
-	FARPROC fnDirectSoundCreate = GetProcAddress(GetModuleHandle(L"DSOUND"), "DirectSoundCreate");
-	if (fnDirectSoundCreate != nullptr)
-		MH_CreateHook(fnDirectSoundCreate, hooked_DirectSoundCreate, (LPVOID*)&Real_DirectSoundCreate);
+	if (g_settings.UseBackgroundAudio)
+	{
+		HMODULE dsoundModule = GetModuleHandleW(L"DSOUND");
+		if (dsoundModule != nullptr)
+		{
+			FARPROC fnDirectSoundCreate = GetProcAddress(dsoundModule, "DirectSoundCreate");
+			if (fnDirectSoundCreate != nullptr)
+				MH_CreateHook(fnDirectSoundCreate, hooked_DirectSoundCreate, (LPVOID*)&Real_DirectSoundCreate);
 
-	FARPROC fnDirectSoundCreate8 = GetProcAddress(GetModuleHandle(L"DSOUND"), "DirectSoundCreate8");
-	if (fnDirectSoundCreate8 != nullptr)
-		MH_CreateHook(fnDirectSoundCreate8, hooked_DirectSoundCreate8, (LPVOID*)&Real_DirectSoundCreate8);
-	
+			FARPROC fnDirectSoundCreate8 = GetProcAddress(dsoundModule, "DirectSoundCreate8");
+			if (fnDirectSoundCreate8 != nullptr)
+				MH_CreateHook(fnDirectSoundCreate8, hooked_DirectSoundCreate8, (LPVOID*)&Real_DirectSoundCreate8);
+		}
+	}
+
+	if (g_settings.UseAppAudioDevice)
+		MH_CreateHook(CoCreateInstance, hooked_CoCreateInstance, (LPVOID*)&Real_CoCreateInstance);
+
 	MH_EnableHook(MH_ALL_HOOKS);
 }
 

@@ -7,6 +7,7 @@ struct ci_less
 
 const std::wstring& GetExePath();
 const std::wstring& GetProcessName();
+const std::wstring& GetRoamingAppDataPath();
 
 bool ExtractDeviceIDFromMMDevPath(const std::wstring& path, std::wstring* deviceID);
 bool GetDefaultAudioEndpointPathForProcess(const std::wstring& processPath, std::wstring* mmdevPath);
