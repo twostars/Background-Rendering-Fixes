@@ -6,37 +6,38 @@ Settings g_settings;
 
 static const std::map<std::wstring, Settings, ci_less> DefaultSettings =
 {
-	//                     BGInput BGAudio AppAudio
 	// The Legend of Heroes: Trails in the Sky FC
-	{ L"ed6_win",			{ true, true, true } },
+	{ L"ed6_win",			{} },
 	// The Legend of Heroes: Trails in the Sky FC
-	{ L"ed6_win_DX9",		{ true, true, true } },
+	{ L"ed6_win_DX9",		{} },
 	// The Legend of Heroes: Trails in the Sky SC
-	{ L"ed6_win2",			{ true, true, true } },
+	{ L"ed6_win2",			{} },
 	// The Legend of Heroes: Trails in the Sky SC
-	{ L"ed6_win2_DX9",		{ true, true, true } },
+	{ L"ed6_win2_DX9",		{} },
 	// The Legend of Heroes: Trails in the Sky the 3rd
-	{ L"ed6_win3",			{ true, true, true } },
+	{ L"ed6_win3",			{} },
 	// The Legend of Heroes: Trails in the Sky the 3rd
-	{ L"ed6_win3_DX9",		{ true, true, true } },
+	{ L"ed6_win3_DX9",		{} },
 	// The Legend of Heroes: Trails of Cold Steel I
-	{ L"ed8",				{ true, true, true } },
+	{ L"ed8",				{} },
 	// The Legend of Heroes: Trails of Cold Steel I
-	{ L"ed8jp",				{ true, true, true } },
+	{ L"ed8jp",				{} },
 	// The Legend of Heroes: Trails of Cold Steel II
-	{ L"ed8_2_PC_US",		{ true, true, true } },
+	{ L"ed8_2_PC_US",		{} },
 	// The Legend of Heroes: Trails of Cold Steel II
-	{ L"ed8_2_PC_JP",		{ true, true, true } },
+	{ L"ed8_2_PC_JP",		{} },
 	// The Legend of Heroes: Trails of Cold Steel III
-	{ L"ed8_3_PC",			{ true, true, true } },
+	{ L"ed8_3_PC",			{} },
 	// The Legend of Heroes: Trails of Cold Steel III
-	{ L"ed8_3_PC_JP",		{ true, true, true } },
+	{ L"ed8_3_PC_JP",		{} },
 	// Final Fantasy XIII
-	{ L"ffxiiiimg",			{ true, true, true } },
+	{ L"ffxiiiimg",			{} },
 	// A Hat in Time
-	{ L"HatinTimeGame",		{ false, false, true } },
+	{ L"HatinTimeGame",		{} },
 	// Valheim
-	{ L"valheim",			{ false, false, true } },
+	{ L"valheim",			{} },
+	// Tales of Vesperia: Definitive Edition
+	{ L"TOV_DE",			{} }
 };
 
 bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
@@ -51,7 +52,11 @@ bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
 		CreateDefault(configPath);
 	}
 
-	if (GetPrivateProfileInt(processName, L"Enabled", 0, configPath) == 0)
+	UINT enabled = GetPrivateProfileInt(processName, L"Enabled", UINT_MAX, configPath);
+	if (enabled == 0)
+		return false;
+
+	if (enabled == UINT_MAX)
 	{
 		// Check to see if this process exists as a default.
 		// If so, it was added after the file was created and should be respected.
@@ -62,9 +67,10 @@ bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
 		itr->second.Save(itr->first.c_str(), configPath);
 	}
 
-	UseBackgroundRendering = GetPrivateProfileInt(processName, L"UseBackgroundRendering", 0, configPath) != 0;
-	UseBackgroundAudio = GetPrivateProfileInt(processName, L"UseBackgroundAudio", 0, configPath) != 0;
-	UseAppAudioDevice = GetPrivateProfileInt(processName, L"UseAppAudioDevice", 0, configPath) != 0;
+	UseBackgroundRendering = GetPrivateProfileInt(processName, L"UseBackgroundRendering", 1, configPath) != 0;
+	UseBackgroundAudio = GetPrivateProfileInt(processName, L"UseBackgroundAudio", 1, configPath) != 0;
+	UseAppAudioDevice = GetPrivateProfileInt(processName, L"UseAppAudioDevice", 1, configPath) != 0;
+	UseUnclippedCursor = GetPrivateProfileInt(processName, L"UseUnclippedCursor", 1, configPath) != 0;
 
 	return true;
 }
@@ -75,11 +81,12 @@ void Settings::Save(const wchar_t* processName, const wchar_t* configPath) const
 	WritePrivateProfileString(processName, L"UseBackgroundRendering", UseBackgroundRendering ? L"1" : L"0", configPath);
 	WritePrivateProfileString(processName, L"UseBackgroundAudio", UseBackgroundAudio ? L"1" : L"0", configPath);
 	WritePrivateProfileString(processName, L"UseAppAudioDevice", UseAppAudioDevice ? L"1" : L"0", configPath);
+	WritePrivateProfileString(processName, L"UseUnclippedCursor", UseUnclippedCursor ? L"1" : L"0", configPath);
 }
 
 const std::wstring& Settings::GetDefaultConfigPath()
 {
-	static const std::wstring DefaultConfigPath = GetRoamingAppDataPath() + L"\\Background-Rendering-Fixes\\Background-Rendering-Fixes.ini";
+	static const std::wstring DefaultConfigPath = GetStoragePath() + L"\\Background-Rendering-Fixes.ini";
 	return DefaultConfigPath;
 }
 

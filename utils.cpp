@@ -63,6 +63,12 @@ const std::wstring& GetRoamingAppDataPath()
 	return appDataPath;
 }
 
+const std::wstring& GetStoragePath()
+{
+	static const std::wstring path = GetRoamingAppDataPath() + L"\\Background-Rendering-Fixes";
+	return path;
+}
+
 bool ExtractDeviceIDFromMMDevPath(const std::wstring& path, std::wstring* deviceID)
 {
 	// Sample string: \\?\SWD#MMDEVAPI#{0.0.0.00000000}.{fd9d7031-4c5d-4d34-be9b-0ec5a5168f8f}#{e6327cad-dcec-4949-ae8a-991e976a79d2}
@@ -250,4 +256,19 @@ bool GetDefaultAudioEndpointIDForThisProcess(std::wstring* deviceID)
 {
 	const std::wstring& processPath = GetExePath();
 	return GetDefaultAudioEndpointIDForProcess(processPath, deviceID);
+}
+
+void WriteLog(const wchar_t* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+
+	auto path = GetStoragePath() + L"\\log.txt";
+	FILE* fp = _wfopen(path.c_str(), L"a");
+	if (fp != nullptr)
+	{
+		vfwprintf(fp, fmt, args);
+		fclose(fp);
+	}
+	va_end(args);
 }

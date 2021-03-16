@@ -17,6 +17,8 @@
 #include "WindowData.h"
 #include "settings.h"
 
-extern std::map<HWND, WindowData> g_windowData;
+extern std::map<HWND, WindowData> g_windowDataA;
+extern std::map<HWND, WindowData> g_windowDataW;
 extern bool g_applicationInFocus;
+extern HWND g_applicationWindow;
 extern std::recursive_mutex g_lock;

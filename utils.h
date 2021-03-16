@@ -8,9 +8,13 @@ struct ci_less
 const std::wstring& GetExePath();
 const std::wstring& GetProcessName();
 const std::wstring& GetRoamingAppDataPath();
+const std::wstring& GetStoragePath();
 
 bool ExtractDeviceIDFromMMDevPath(const std::wstring& path, std::wstring* deviceID);
 bool GetDefaultAudioEndpointPathForProcess(const std::wstring& processPath, std::wstring* mmdevPath);
 bool GetDefaultAudioEndpointPathForThisProcess(std::wstring* mmdevPath);
 bool GetDefaultAudioEndpointIDForProcess(const std::wstring& processPath, std::wstring* deviceID);
 bool GetDefaultAudioEndpointIDForThisProcess(std::wstring* deviceID);
+
+void WriteLog(const wchar_t* fmt, ...);
+
