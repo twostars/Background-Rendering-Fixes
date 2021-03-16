@@ -73,6 +73,8 @@ void Settings::CreateDefault(const wchar_t* configPath)
 		{ L"ffxiiiimg",			{ true, true, true } },
 		// A Hat in Time
 		{ L"HatinTimeGame",		{ false, false, true } },
+		// Valheim
+		{ L"valheim",			{ false, false, true } },
 	};
 
 	for (auto itr = DefaultSettings.begin(); itr != DefaultSettings.end(); ++itr)
