@@ -42,6 +42,7 @@
     <ClCompile Include="thirdparty\minhook\src\hde\hde64.c" />
     <ClCompile Include="thirdparty\minhook\src\hook.c" />
     <ClCompile Include="thirdparty\minhook\src\trampoline.c" />
+    <ClCompile Include="tls.cpp" />
     <ClCompile Include="utils.cpp" />
     <ClCompile Include="WndProc.cpp" />
   </ItemGroup>
@@ -62,6 +63,7 @@
     <ClInclude Include="thirdparty\minhook\src\hde\table32.h" />
     <ClInclude Include="thirdparty\minhook\src\hde\table64.h" />
     <ClInclude Include="thirdparty\minhook\src\trampoline.h" />
+    <ClInclude Include="tls.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="WindowData.h" />
   </ItemGroup>

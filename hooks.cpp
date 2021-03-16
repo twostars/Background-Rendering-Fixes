@@ -4,6 +4,15 @@
 #include "My_IDirectSound8.h"
 #include "My_IXAudio20.h"
 #include "utils.h"
+#include "tls.h"
+
+#include <d3dcommon.h>
+
+struct IDXGIAdapter;
+struct DXGI_SWAP_CHAIN_DESC;
+struct IDXGISwapChain;
+struct ID3D11Device;
+struct ID3D11DeviceContext;
 
 LRESULT CALLBACK WndProcA(
 	_In_ HWND   hwnd,
@@ -103,6 +112,13 @@ void (WINAPI *Real_Sleep)(
 	DWORD dwMilliseconds
 ) = 0;
 
+void (WINAPI *Real_RaiseException)(
+	DWORD           dwExceptionCode,
+	DWORD           dwExceptionFlags,
+	DWORD           nNumberOfArguments,
+	const ULONG_PTR* lpArguments
+) = 0;
+
 HRESULT (WINAPI *Real_CoCreateInstance)(
 	REFCLSID  rclsid,
 	LPUNKNOWN pUnkOuter,
@@ -122,6 +138,20 @@ HRESULT (WINAPI *Real_DirectSoundCreate8)(
 	LPDIRECTSOUND8* ppDS,
 	LPUNKNOWN pUnkOuter
 ) = 0;
+
+
+HRESULT (WINAPI *Real_D3D11CreateDeviceAndSwapChain)(IDXGIAdapter          *pAdapter,
+                                      D3D_DRIVER_TYPE        DriverType,
+                                      HMODULE                Software,
+                                      UINT                   Flags,
+ _In_reads_opt_ (FeatureLevels) CONST D3D_FEATURE_LEVEL     *pFeatureLevels,
+                                      UINT                   FeatureLevels,
+                                      UINT                   SDKVersion,
+ _In_opt_                       CONST DXGI_SWAP_CHAIN_DESC  *pSwapChainDesc,
+ _Out_opt_                            IDXGISwapChain       **ppSwapChain,
+ _Out_opt_                            ID3D11Device         **ppDevice,
+ _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
+ _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext) = 0;
 
 LONG_PTR WINAPI hooked_SetWindowLongPtrA(
 	HWND     hWnd,
@@ -207,6 +237,13 @@ void WINAPI hooked_Sleep(
 	DWORD dwMilliseconds
 );
 
+void WINAPI hooked_RaiseException(
+	DWORD           dwExceptionCode,
+	DWORD           dwExceptionFlags,
+	DWORD           nNumberOfArguments,
+	const ULONG_PTR* lpArguments
+);
+
 HRESULT WINAPI hooked_CoCreateInstance(
 	REFCLSID  rclsid,
 	LPUNKNOWN pUnkOuter,
@@ -225,51 +262,60 @@ HRESULT WINAPI hooked_DirectSoundCreate8(
 	LPDIRECTSOUND8* ppDS,
 	LPUNKNOWN pUnkOuter);
 
+HRESULT WINAPI hooked_D3D11CreateDeviceAndSwapChain(IDXGIAdapter          *pAdapter,
+                                      D3D_DRIVER_TYPE        DriverType,
+                                      HMODULE                Software,
+                                      UINT                   Flags,
+ _In_reads_opt_ (FeatureLevels) CONST D3D_FEATURE_LEVEL     *pFeatureLevels,
+                                      UINT                   FeatureLevels,
+                                      UINT                   SDKVersion,
+ _In_opt_                       CONST DXGI_SWAP_CHAIN_DESC  *pSwapChainDesc,
+ _Out_opt_                            IDXGISwapChain       **ppSwapChain,
+ _Out_opt_                            ID3D11Device         **ppDevice,
+ _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
+ _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext);
+
 void InstallHooks()
 {
-	if (g_settings.UseBackgroundRendering)
+	MH_CreateHook(SetWindowLongPtrA, hooked_SetWindowLongPtrA, (LPVOID*)&Real_SetWindowLongPtrA);
+	MH_CreateHook(SetWindowLongPtrW, hooked_SetWindowLongPtrW, (LPVOID*)&Real_SetWindowLongPtrW);
+	MH_CreateHook(GetWindowLongPtrA, hooked_GetWindowLongPtrA, (LPVOID*)&Real_GetWindowLongPtrA);
+	MH_CreateHook(GetWindowLongPtrW, hooked_GetWindowLongPtrW, (LPVOID*)&Real_GetWindowLongPtrW);
+	MH_CreateHook(CreateWindowExA, hooked_CreateWindowExA, (LPVOID*)&Real_CreateWindowExA);
+	MH_CreateHook(CreateWindowExW, hooked_CreateWindowExW, (LPVOID*)&Real_CreateWindowExW);
+	MH_CreateHook(DestroyWindow, hooked_DestroyWindow, (LPVOID*)&Real_DestroyWindow);
+	MH_CreateHook(GetActiveWindow, hooked_GetActiveWindow, (LPVOID*)&Real_GetActiveWindow);
+	MH_CreateHook(GetForegroundWindow, hooked_GetForegroundWindow, (LPVOID*)&Real_GetForegroundWindow);
+	MH_CreateHook(GetAsyncKeyState, hooked_GetAsyncKeyState, (LPVOID*)&Real_GetAsyncKeyState);
+	MH_CreateHook(GetKeyState, hooked_GetKeyState, (LPVOID*)&Real_GetKeyState);
+	MH_CreateHook(GetKeyboardState, hooked_GetKeyboardState, (LPVOID*)&Real_GetKeyboardState);
+
+	HMODULE dsoundModule = GetModuleHandleW(L"DSOUND");
+	if (dsoundModule != nullptr)
 	{
-		MH_CreateHook(SetWindowLongPtrA, hooked_SetWindowLongPtrA, (LPVOID*)&Real_SetWindowLongPtrA);
-		MH_CreateHook(SetWindowLongPtrW, hooked_SetWindowLongPtrW, (LPVOID*)&Real_SetWindowLongPtrW);
-		MH_CreateHook(GetWindowLongPtrA, hooked_GetWindowLongPtrA, (LPVOID*)&Real_GetWindowLongPtrA);
-		MH_CreateHook(GetWindowLongPtrW, hooked_GetWindowLongPtrW, (LPVOID*)&Real_GetWindowLongPtrW);
-		MH_CreateHook(CreateWindowExA, hooked_CreateWindowExA, (LPVOID*)&Real_CreateWindowExA);
-		MH_CreateHook(CreateWindowExW, hooked_CreateWindowExW, (LPVOID*)&Real_CreateWindowExW);
-		MH_CreateHook(DestroyWindow, hooked_DestroyWindow, (LPVOID*)&Real_DestroyWindow);
-		MH_CreateHook(GetActiveWindow, hooked_GetActiveWindow, (LPVOID*)&Real_GetActiveWindow);
-		MH_CreateHook(GetForegroundWindow, hooked_GetForegroundWindow, (LPVOID*)&Real_GetForegroundWindow);
-		MH_CreateHook(GetAsyncKeyState, hooked_GetAsyncKeyState, (LPVOID*)&Real_GetAsyncKeyState);
-		MH_CreateHook(GetKeyState, hooked_GetKeyState, (LPVOID*)&Real_GetKeyState);
-		MH_CreateHook(GetKeyboardState, hooked_GetKeyboardState, (LPVOID*)&Real_GetKeyboardState);
+		FARPROC fnDirectSoundCreate = GetProcAddress(dsoundModule, "DirectSoundCreate");
+		if (fnDirectSoundCreate != nullptr)
+			MH_CreateHook(fnDirectSoundCreate, hooked_DirectSoundCreate, (LPVOID*)&Real_DirectSoundCreate);
+
+		FARPROC fnDirectSoundCreate8 = GetProcAddress(dsoundModule, "DirectSoundCreate8");
+		if (fnDirectSoundCreate8 != nullptr)
+			MH_CreateHook(fnDirectSoundCreate8, hooked_DirectSoundCreate8, (LPVOID*)&Real_DirectSoundCreate8);
 	}
 
-	if (g_settings.UseBackgroundAudio)
-	{
-		HMODULE dsoundModule = GetModuleHandleW(L"DSOUND");
-		if (dsoundModule != nullptr)
-		{
-			FARPROC fnDirectSoundCreate = GetProcAddress(dsoundModule, "DirectSoundCreate");
-			if (fnDirectSoundCreate != nullptr)
-				MH_CreateHook(fnDirectSoundCreate, hooked_DirectSoundCreate, (LPVOID*)&Real_DirectSoundCreate);
+	MH_CreateHook(CoCreateInstance, hooked_CoCreateInstance, (LPVOID*)&Real_CoCreateInstance);
+	MH_CreateHook(ClipCursor, hooked_ClipCursor, (LPVOID*)&Real_ClipCursor);
+	MH_CreateHook(SetCursorPos, hooked_SetCursorPos, (LPVOID*)&Real_SetCursorPos);
+	MH_CreateHook(Sleep, hooked_Sleep, (LPVOID*)&Real_Sleep);
 
-			FARPROC fnDirectSoundCreate8 = GetProcAddress(dsoundModule, "DirectSoundCreate8");
-			if (fnDirectSoundCreate8 != nullptr)
-				MH_CreateHook(fnDirectSoundCreate8, hooked_DirectSoundCreate8, (LPVOID*)&Real_DirectSoundCreate8);
-		}
+	HMODULE d3d11Module = GetModuleHandleW(L"d3d11");
+	if (d3d11Module != nullptr)
+	{
+		FARPROC fnD3D11CreateDeviceAndSwapChain = GetProcAddress(d3d11Module, "D3D11CreateDeviceAndSwapChain");
+		if (fnD3D11CreateDeviceAndSwapChain != nullptr)
+			MH_CreateHook(fnD3D11CreateDeviceAndSwapChain, hooked_D3D11CreateDeviceAndSwapChain, (LPVOID*)&Real_D3D11CreateDeviceAndSwapChain);
 	}
 
-	if (g_settings.UseAppAudioDevice)
-		MH_CreateHook(CoCreateInstance, hooked_CoCreateInstance, (LPVOID*)&Real_CoCreateInstance);
-
-	if (g_settings.UseUnclippedCursor)
-	{
-		MH_CreateHook(ClipCursor, hooked_ClipCursor, (LPVOID*)&Real_ClipCursor);
-		MH_CreateHook(SetCursorPos, hooked_SetCursorPos, (LPVOID*)&Real_SetCursorPos);
-	}
-
-	if (g_settings.TalesOfVesperia_MicroStutterFix)
-		MH_CreateHook(Sleep, hooked_Sleep, (LPVOID*)&Real_Sleep);
-
+	MH_CreateHook(RaiseException, hooked_RaiseException, (LPVOID*)&Real_RaiseException);
 	MH_EnableHook(MH_ALL_HOOKS);
 }
 
@@ -453,16 +499,24 @@ BOOL WINAPI hooked_DestroyWindow(
 
 HWND hooked_GetActiveWindow()
 {
-	if (!g_applicationInFocus)
-		return g_applicationWindow;
+	if (g_settings.UseBackgroundRendering
+		|| g_settings.UseBackgroundAudio)
+	{
+		if (!g_applicationInFocus)
+			return g_applicationWindow;
+	}
 
 	return Real_GetActiveWindow();
 }
 
 HWND hooked_GetForegroundWindow()
 {
-	if (!g_applicationInFocus)
-		return g_applicationWindow;
+	if (g_settings.UseBackgroundRendering
+		|| g_settings.UseBackgroundAudio)
+	{
+		if (!g_applicationInFocus)
+			return g_applicationWindow;
+	}
 
 	return Real_GetForegroundWindow();
 }
@@ -477,7 +531,8 @@ SHORT WINAPI hooked_GetAsyncKeyState(int vKey)
 
 SHORT WINAPI hooked_GetKeyState(int nVirtKey)
 {
-	if (!g_applicationInFocus)
+	if (g_settings.UseBackgroundRendering
+		&& !g_applicationInFocus)
 		return 0;
 
 	return Real_GetKeyState(nVirtKey);
@@ -485,7 +540,8 @@ SHORT WINAPI hooked_GetKeyState(int nVirtKey)
 
 BOOL WINAPI hooked_GetKeyboardState(PBYTE lpKeyState)
 {
-	if (!g_applicationInFocus)
+	if (g_settings.UseBackgroundRendering
+		&& !g_applicationInFocus)
 	{
 		// MSDN states this is a 256 byte array.
 		memset(lpKeyState, 0, 256);
@@ -497,7 +553,7 @@ BOOL WINAPI hooked_GetKeyboardState(PBYTE lpKeyState)
 
 BOOL WINAPI hooked_ClipCursor(const RECT* lpRect)
 {
-	if (!g_applicationInFocus
+	if ((g_settings.UseBackgroundRendering && !g_applicationInFocus)
 		|| g_settings.UseUnclippedCursor)
 		return Real_ClipCursor(nullptr);
 
@@ -506,9 +562,9 @@ BOOL WINAPI hooked_ClipCursor(const RECT* lpRect)
 
 BOOL WINAPI hooked_SetCursorPos(int X, int Y)
 {
-	if (!g_applicationInFocus
+	if ((g_settings.UseBackgroundRendering && !g_applicationInFocus)
 		|| g_settings.UseUnclippedCursor)
-		return TRUE;
+		return Real_ClipCursor(nullptr);
 
 	return Real_SetCursorPos(X, Y);
 }
@@ -518,13 +574,57 @@ void WINAPI hooked_Sleep(
 )
 {
 	// Tales of Vesperia microstutter hackfix
-	if (dwMilliseconds == 1)
+	if (g_settings.TalesOfVesperia_MicroStutterFix)
 	{
-		YieldProcessor();
-		return;
+		static const thread_local bool IsPollerThread =
+			(g_tls.ThreadName == "WorkThread" || g_tls.ThreadName == "BusyThread");
+
+		if (IsPollerThread
+			|| g_tls.ThreadID == g_renderThreadId)
+		{
+			YieldProcessor();
+			return;
+		}
 	}
 
 	return Real_Sleep(dwMilliseconds);
+}
+
+void WINAPI hooked_RaiseException(
+	DWORD           dwExceptionCode,
+	DWORD           dwExceptionFlags,
+	DWORD           nNumberOfArguments,
+	const ULONG_PTR* lpArguments
+)
+{
+	constexpr DWORD MS_VC_EXCEPTION = 0x406D1388;
+
+#pragma pack(push,8)
+	typedef struct tagTHREADNAME_INFO
+	{
+		DWORD dwType;		// Must be 0x1000.
+		LPCSTR szName;		// Pointer to name (in user addr space).
+		DWORD dwThreadID;	// Thread ID (-1=caller thread).
+		DWORD dwFlags;		// Reserved for future use, must be zero.
+	} THREADNAME_INFO;
+#pragma pack(pop)
+
+	if (dwExceptionCode == MS_VC_EXCEPTION)
+	{
+		auto info = (THREADNAME_INFO*)lpArguments;
+		if (info->szName != nullptr
+			&& info->dwFlags == 0
+			&& info->dwType == 0x1000)
+		{
+			DWORD dwThreadId = info->dwThreadID;
+			if (dwThreadId == -1)
+				dwThreadId = g_tls.ThreadID;
+
+			g_tls.ThreadName = info->szName;
+		}
+	}
+
+	return Real_RaiseException(dwExceptionCode, dwExceptionFlags, nNumberOfArguments, lpArguments);
 }
 
 HRESULT WINAPI hooked_CoCreateInstance(
@@ -583,4 +683,34 @@ HRESULT WINAPI hooked_DirectSoundCreate8(
 	if (SUCCEEDED(hr) && ppDS != nullptr)
 		*ppDS = new My_IDirectSound8(*ppDS);
 	return hr;
+}
+
+HRESULT WINAPI hooked_D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter,
+	D3D_DRIVER_TYPE        DriverType,
+	HMODULE                Software,
+	UINT                   Flags,
+	_In_reads_opt_(FeatureLevels) CONST D3D_FEATURE_LEVEL* pFeatureLevels,
+	UINT                   FeatureLevels,
+	UINT                   SDKVersion,
+	_In_opt_                       CONST DXGI_SWAP_CHAIN_DESC* pSwapChainDesc,
+	_Out_opt_                            IDXGISwapChain** ppSwapChain,
+	_Out_opt_                            ID3D11Device** ppDevice,
+	_Out_opt_                            D3D_FEATURE_LEVEL* pFeatureLevel,
+	_Out_opt_                            ID3D11DeviceContext** ppImmediateContext)
+{
+	g_renderThreadId = g_tls.ThreadID;
+
+	return Real_D3D11CreateDeviceAndSwapChain(
+		pAdapter,
+		DriverType,
+		Software,
+		Flags,
+		pFeatureLevels,
+		FeatureLevels,
+		SDKVersion,
+		pSwapChainDesc,
+		ppSwapChain,
+		ppDevice,
+		pFeatureLevel,
+		ppImmediateContext);
 }

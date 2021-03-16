@@ -19,6 +19,7 @@
 
 extern std::map<HWND, WindowData> g_windowDataA;
 extern std::map<HWND, WindowData> g_windowDataW;
-extern bool g_applicationInFocus;
-extern HWND g_applicationWindow;
+extern std::atomic<bool> g_applicationInFocus;
+extern std::atomic<HWND> g_applicationWindow;
+extern std::atomic<DWORD> g_renderThreadId;
 extern std::recursive_mutex g_lock;

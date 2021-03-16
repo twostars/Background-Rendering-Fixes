@@ -34,6 +34,7 @@
     </ClCompile>
     <ClCompile Include="hooks.cpp" />
     <ClCompile Include="settings.cpp" />
+    <ClCompile Include="tls.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -80,6 +81,7 @@
     </ClInclude>
     <ClInclude Include="hooks.h" />
     <ClInclude Include="settings.h" />
+    <ClInclude Include="tls.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="DirectSound">

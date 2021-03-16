@@ -108,23 +108,26 @@ HRESULT My_IXAudio20::CreateMasteringVoice(
 {
 	// When the default is supplied, we should attempt to find the real default.
 	// It is, however, unfortunate if we explicitly want to use device 0 over a default.
-	std::wstring deviceID;
-	if (DeviceIndex == 0
-		&& GetDefaultAudioEndpointIDForThisProcess(&deviceID))
+	if (g_settings.UseAppAudioDevice)
 	{
-		UINT32 count = 0;
-		if (SUCCEEDED(m_original->GetDeviceCount(&count)))
+		std::wstring deviceID;
+		if (DeviceIndex == 0
+			&& GetDefaultAudioEndpointIDForThisProcess(&deviceID))
 		{
-			for (UINT32 i = 0; i < count; ++i)
+			UINT32 count = 0;
+			if (SUCCEEDED(m_original->GetDeviceCount(&count)))
 			{
-				XAUDIO20_DEVICE_DETAILS deviceDetails = { 0 };
-				if (FAILED(m_original->GetDeviceDetails(i, &deviceDetails)))
-					continue;
-
-				if (wcsicmp(deviceID.c_str(), deviceDetails.DeviceID) == 0)
+				for (UINT32 i = 0; i < count; ++i)
 				{
-					DeviceIndex = i;
-					break;
+					XAUDIO20_DEVICE_DETAILS deviceDetails = { 0 };
+					if (FAILED(m_original->GetDeviceDetails(i, &deviceDetails)))
+						continue;
+
+					if (wcsicmp(deviceID.c_str(), deviceDetails.DeviceID) == 0)
+					{
+						DeviceIndex = i;
+						break;
+					}
 				}
 			}
 		}

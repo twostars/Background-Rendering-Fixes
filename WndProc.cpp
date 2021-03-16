@@ -1,11 +1,15 @@
 #include "stdafx.h"
 #include "utils.h"
+#include "tls.h"
 
 std::map<HWND, WindowData> g_windowDataA;
 std::map<HWND, WindowData> g_windowDataW;
 
-bool g_applicationInFocus = true;
-HWND g_applicationWindow = nullptr;
+std::atomic<bool> g_applicationInFocus = true;
+std::atomic<HWND> g_applicationWindow = nullptr;
+
+// TODO: fetch this for non-DX11 games as required
+std::atomic<DWORD> g_renderThreadId = 0;
 
 std::recursive_mutex g_lock;
 
@@ -70,10 +74,14 @@ bool WindowProcImpl(
 		g_applicationInFocus = (wParam != 0);
 
 		// We should exempt any app lost focus messages
-		if (wParam == 0
-			// or any re-activations.
-			|| windowData.AppActivateHandled)
-			return false;
+		if (g_settings.UseBackgroundRendering
+			|| g_settings.UseBackgroundAudio)
+		{
+			if (wParam == 0
+				// or any re-activations.
+				|| windowData.AppActivateHandled)
+				return false;
+		}
 
 		windowData.AppActivateHandled = true;
 	}
@@ -85,20 +93,28 @@ bool WindowProcImpl(
 			&& hwnd == GetAncestor(hwnd, GA_ROOT))
 			g_applicationWindow = hwnd;
 
-		// We should exempt any app lost focus messages
-		if (wParam == 0
-			// or any re-activations.
-			|| windowData.ActivateHandled)
-			return false;
+		if (g_settings.UseBackgroundRendering
+			|| g_settings.UseBackgroundAudio)
+		{
+			// We should exempt any app lost focus messages
+			if (wParam == 0
+				// or any re-activations.
+				|| windowData.ActivateHandled)
+				return false;
+		}
 
 		windowData.ActivateHandled = true;
 	}
 	else if (uMsg == WM_SETFOCUS
 		|| uMsg == WM_KILLFOCUS)
 	{
-		if (hwnd == g_applicationWindow
-			&& windowData.ActivateHandled)
-			return false;
+		if (g_settings.UseBackgroundRendering
+			|| g_settings.UseBackgroundAudio)
+		{
+			if (hwnd == g_applicationWindow
+				&& windowData.ActivateHandled)
+				return false;
+		}
 	}
 
 	return true;

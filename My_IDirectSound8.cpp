@@ -37,21 +37,25 @@ ULONG My_IDirectSound8::Release()
 // IDirectSound methods
 HRESULT My_IDirectSound8::CreateSoundBuffer(LPCDSBUFFERDESC pcDSBufferDesc, LPDIRECTSOUNDBUFFER* ppDSBuffer, LPUNKNOWN pUnkOuter)
 {
-	void* bufferDesc = nullptr;
-	if (pcDSBufferDesc != nullptr
-		&& pcDSBufferDesc->dwSize != 0)
+	if (g_settings.UseBackgroundAudio)
 	{
-		bufferDesc = new uint8_t[pcDSBufferDesc->dwSize];
-		memcpy(bufferDesc, pcDSBufferDesc, pcDSBufferDesc->dwSize);
-		((LPDSBUFFERDESC)bufferDesc)->dwFlags |= DSBCAPS_GLOBALFOCUS;
+		if (pcDSBufferDesc != nullptr
+			&& pcDSBufferDesc->dwSize != 0)
+		{
+			uint8_t* bufferDesc = new uint8_t[pcDSBufferDesc->dwSize];
+			memcpy(bufferDesc, pcDSBufferDesc, pcDSBufferDesc->dwSize);
+			((LPDSBUFFERDESC)bufferDesc)->dwFlags |= DSBCAPS_GLOBALFOCUS;
+
+			HRESULT hr = m_original->CreateSoundBuffer((LPCDSBUFFERDESC)bufferDesc, ppDSBuffer, pUnkOuter);
+
+			if (bufferDesc != nullptr)
+				delete[] bufferDesc;
+
+			return hr;
+		}
 	}
 
-	HRESULT hr = m_original->CreateSoundBuffer((LPCDSBUFFERDESC)bufferDesc, ppDSBuffer, pUnkOuter);
-
-	if (bufferDesc != nullptr)
-		delete bufferDesc;
-
-	return hr;
+	return m_original->CreateSoundBuffer(pcDSBufferDesc, ppDSBuffer, pUnkOuter);
 }
 
 HRESULT My_IDirectSound8::GetCaps(LPDSCAPS pDSCaps)
