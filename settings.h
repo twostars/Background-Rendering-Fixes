@@ -23,6 +23,11 @@ struct Settings
 	// This disables such functionality, to allow your cursor to free roam.
 	bool UseUnclippedCursor = true;
 
+	// Tales of Vesperia worker/busy threads constantly poll every 1ms instead of simply waiting for a signal.
+	// This unfortunately causes a noticeable microstutter in-game.
+	// This fix is credited to Kaldaien (Special K mod), though his implementation is far more thorough than mine.
+	bool TalesOfVesperia_MicroStutterFix = false;
+
 	bool Load(const wchar_t* processName, const wchar_t* configPath);
 	void Save(const wchar_t* processName, const wchar_t* configPath) const;
 

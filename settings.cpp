@@ -37,7 +37,7 @@ static const std::map<std::wstring, Settings, ci_less> DefaultSettings =
 	// Valheim
 	{ L"valheim",			{} },
 	// Tales of Vesperia: Definitive Edition
-	{ L"TOV_DE",			{} }
+	{ L"TOV_DE",			{ .TalesOfVesperia_MicroStutterFix = true } }
 };
 
 bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
@@ -72,16 +72,31 @@ bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
 	UseAppAudioDevice = GetPrivateProfileInt(processName, L"UseAppAudioDevice", 1, configPath) != 0;
 	UseUnclippedCursor = GetPrivateProfileInt(processName, L"UseUnclippedCursor", 1, configPath) != 0;
 
+	TalesOfVesperia_MicroStutterFix = GetPrivateProfileInt(processName, L"TalesOfVesperia.MicroStutterFix", 0, configPath) != 0;
+
 	return true;
 }
 
 void Settings::Save(const wchar_t* processName, const wchar_t* configPath) const
 {
+	static const Settings DefaultSettings;
+
 	WritePrivateProfileString(processName, L"Enabled", L"1", configPath);
-	WritePrivateProfileString(processName, L"UseBackgroundRendering", UseBackgroundRendering ? L"1" : L"0", configPath);
-	WritePrivateProfileString(processName, L"UseBackgroundAudio", UseBackgroundAudio ? L"1" : L"0", configPath);
-	WritePrivateProfileString(processName, L"UseAppAudioDevice", UseAppAudioDevice ? L"1" : L"0", configPath);
-	WritePrivateProfileString(processName, L"UseUnclippedCursor", UseUnclippedCursor ? L"1" : L"0", configPath);
+
+	if (UseBackgroundRendering != DefaultSettings.UseBackgroundRendering)
+		WritePrivateProfileString(processName, L"UseBackgroundRendering", UseBackgroundRendering ? L"1" : L"0", configPath);
+
+	if (UseBackgroundAudio != DefaultSettings.UseBackgroundAudio)
+		WritePrivateProfileString(processName, L"UseBackgroundAudio", UseBackgroundAudio ? L"1" : L"0", configPath);
+
+	if (UseAppAudioDevice != DefaultSettings.UseAppAudioDevice)
+		WritePrivateProfileString(processName, L"UseAppAudioDevice", UseAppAudioDevice ? L"1" : L"0", configPath);
+
+	if (UseUnclippedCursor != DefaultSettings.UseUnclippedCursor)
+		WritePrivateProfileString(processName, L"UseUnclippedCursor", UseUnclippedCursor ? L"1" : L"0", configPath);
+
+	if (TalesOfVesperia_MicroStutterFix != DefaultSettings.TalesOfVesperia_MicroStutterFix)
+		WritePrivateProfileString(processName, L"TalesOfVesperia.MicroStutterFix", TalesOfVesperia_MicroStutterFix ? L"1" : L"0", configPath);
 }
 
 const std::wstring& Settings::GetDefaultConfigPath()

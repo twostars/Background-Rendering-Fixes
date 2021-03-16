@@ -99,6 +99,10 @@ BOOL (WINAPI *Real_SetCursorPos)(
 	int Y
 ) = 0;
 
+void (WINAPI *Real_Sleep)(
+	DWORD dwMilliseconds
+) = 0;
+
 HRESULT (WINAPI *Real_CoCreateInstance)(
 	REFCLSID  rclsid,
 	LPUNKNOWN pUnkOuter,
@@ -199,6 +203,10 @@ BOOL WINAPI hooked_SetCursorPos(
 	int Y
 );
 
+void WINAPI hooked_Sleep(
+	DWORD dwMilliseconds
+);
+
 HRESULT WINAPI hooked_CoCreateInstance(
 	REFCLSID  rclsid,
 	LPUNKNOWN pUnkOuter,
@@ -258,6 +266,9 @@ void InstallHooks()
 		MH_CreateHook(ClipCursor, hooked_ClipCursor, (LPVOID*)&Real_ClipCursor);
 		MH_CreateHook(SetCursorPos, hooked_SetCursorPos, (LPVOID*)&Real_SetCursorPos);
 	}
+
+	if (g_settings.TalesOfVesperia_MicroStutterFix)
+		MH_CreateHook(Sleep, hooked_Sleep, (LPVOID*)&Real_Sleep);
 
 	MH_EnableHook(MH_ALL_HOOKS);
 }
@@ -500,6 +511,20 @@ BOOL WINAPI hooked_SetCursorPos(int X, int Y)
 		return TRUE;
 
 	return Real_SetCursorPos(X, Y);
+}
+
+void WINAPI hooked_Sleep(
+	DWORD dwMilliseconds
+)
+{
+	// Tales of Vesperia microstutter hackfix
+	if (dwMilliseconds == 1)
+	{
+		YieldProcessor();
+		return;
+	}
+
+	return Real_Sleep(dwMilliseconds);
 }
 
 HRESULT WINAPI hooked_CoCreateInstance(
