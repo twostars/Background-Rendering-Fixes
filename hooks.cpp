@@ -5,14 +5,14 @@
 #include "My_IXAudio20.h"
 #include "utils.h"
 
-LRESULT CALLBACK WindowProcA(
+LRESULT CALLBACK WndProcA(
 	_In_ HWND   hwnd,
 	_In_ UINT   uMsg,
 	_In_ WPARAM wParam,
 	_In_ LPARAM lParam
 );
 
-LRESULT CALLBACK WindowProcW(
+LRESULT CALLBACK WndProcW(
 	_In_ HWND   hwnd,
 	_In_ UINT   uMsg,
 	_In_ WPARAM wParam,
@@ -274,11 +274,11 @@ LONG_PTR WINAPI hooked_SetWindowLongPtrA(
 )
 {
 	if (nIndex == GWLP_WNDPROC
-		&& dwNewLong != (LONG_PTR)WindowProcA)
+		&& dwNewLong != (LONG_PTR)WndProcA)
 	{
 		std::lock_guard<std::recursive_mutex> lock(g_lock);
 		g_windowDataA[hWnd].OriginalProc = (WNDPROC)dwNewLong;
-		dwNewLong = (LONG_PTR)&WindowProcA;
+		dwNewLong = (LONG_PTR)&WndProcA;
 	}
 
 	return Real_SetWindowLongPtrA(hWnd, nIndex, dwNewLong);
@@ -291,11 +291,11 @@ LONG_PTR WINAPI hooked_SetWindowLongPtrW(
 )
 {
 	if (nIndex == GWLP_WNDPROC
-		&& dwNewLong != (LONG_PTR)WindowProcW)
+		&& dwNewLong != (LONG_PTR)WndProcW)
 	{
 		std::lock_guard<std::recursive_mutex> lock(g_lock);
 		g_windowDataW[hWnd].OriginalProc = (WNDPROC)dwNewLong;
-		dwNewLong = (LONG_PTR)&WindowProcW;
+		dwNewLong = (LONG_PTR)&WndProcW;
 	}
 
 	return Real_SetWindowLongPtrW(hWnd, nIndex, dwNewLong);
@@ -368,11 +368,11 @@ HWND WINAPI hooked_CreateWindowExA(
 	{
 		WNDPROC originalProc = (WNDPROC)GetWindowLongPtrA(hWnd, GWLP_WNDPROC);
 		if (originalProc != nullptr
-			&& originalProc != WindowProcA)
+			&& originalProc != WndProcA)
 		{
 			std::lock_guard<std::recursive_mutex> lock(g_lock);
 			g_windowDataA[hWnd].OriginalProc = originalProc;
-			Real_SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR)&WindowProcA);
+			Real_SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR)&WndProcA);
 		}
 	}
 
@@ -413,11 +413,11 @@ HWND WINAPI hooked_CreateWindowExW(
 	{
 		WNDPROC originalProc = (WNDPROC)GetWindowLongPtrW(hWnd, GWLP_WNDPROC);
 		if (originalProc != nullptr
-			&& originalProc != WindowProcW)
+			&& originalProc != WndProcW)
 		{
 			std::lock_guard<std::recursive_mutex> lock(g_lock);
 			g_windowDataW[hWnd].OriginalProc = originalProc;
-			Real_SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)&WindowProcW);
+			Real_SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)&WndProcW);
 		}
 	}
 

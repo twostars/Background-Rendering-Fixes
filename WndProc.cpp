@@ -9,7 +9,15 @@ HWND g_applicationWindow = nullptr;
 
 std::recursive_mutex g_lock;
 
-LRESULT CALLBACK WindowProcA(
+bool WindowProcImpl(
+	_In_ HWND   hwnd,
+	_In_ UINT   uMsg,
+	_In_ WPARAM wParam,
+	_In_ LPARAM lParam,
+	_In_ WindowData& windowData
+);
+
+LRESULT CALLBACK WndProcA(
 	_In_ HWND   hwnd,
 	_In_ UINT   uMsg,
 	_In_ WPARAM wParam,
@@ -22,48 +30,14 @@ LRESULT CALLBACK WindowProcA(
 		return DefWindowProcA(hwnd, uMsg, wParam, lParam);
 
 	auto& windowData = itr->second;
-
-	if (uMsg == WM_ACTIVATEAPP)
-	{
-		g_applicationInFocus = (wParam != 0);
-
-		// We should exempt any app lost focus messages
-		if (wParam == 0
-			// or any re-activations.
-			|| windowData.AppActivateHandled)
-			return 0;
-
-		windowData.AppActivateHandled = true;
-	}
-	else if (uMsg == WM_ACTIVATE)
-	{
-		windowData.Focused = (wParam != 0);
-
-		if (windowData.Focused
-			&& hwnd == GetAncestor(hwnd, GA_ROOT))
-			g_applicationWindow = hwnd;
-
-		// We should exempt any app lost focus messages
-		if (wParam == 0
-			// or any re-activations.
-			|| windowData.ActivateHandled)
-			return 0;
-
-		windowData.ActivateHandled = true;
-	}
-	else if (uMsg == WM_SETFOCUS
-		|| uMsg == WM_KILLFOCUS)
-	{
-		if (hwnd == g_applicationWindow
-			&& windowData.ActivateHandled)
-			return 0;
-	}
+	if (!WindowProcImpl(hwnd, uMsg, wParam, lParam, windowData))
+		return 0;
 
 	// Restore the original call.
 	return CallWindowProcA(windowData.OriginalProc, hwnd, uMsg, wParam, lParam);
 }
 
-LRESULT CALLBACK WindowProcW(
+LRESULT CALLBACK WndProcW(
 	_In_ HWND   hwnd,
 	_In_ UINT   uMsg,
 	_In_ WPARAM wParam,
@@ -76,7 +50,21 @@ LRESULT CALLBACK WindowProcW(
 		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 
 	auto& windowData = itr->second;
+	if (!WindowProcImpl(hwnd, uMsg, wParam, lParam, windowData))
+		return 0;
 
+	// Restore the original call.
+	return CallWindowProcW(windowData.OriginalProc, hwnd, uMsg, wParam, lParam);
+}
+
+bool WindowProcImpl(
+	_In_ HWND   hwnd,
+	_In_ UINT   uMsg,
+	_In_ WPARAM wParam,
+	_In_ LPARAM lParam,
+	_In_ WindowData& windowData
+)
+{
 	if (uMsg == WM_ACTIVATEAPP)
 	{
 		g_applicationInFocus = (wParam != 0);
@@ -85,7 +73,7 @@ LRESULT CALLBACK WindowProcW(
 		if (wParam == 0
 			// or any re-activations.
 			|| windowData.AppActivateHandled)
-			return 0;
+			return false;
 
 		windowData.AppActivateHandled = true;
 	}
@@ -101,16 +89,17 @@ LRESULT CALLBACK WindowProcW(
 		if (wParam == 0
 			// or any re-activations.
 			|| windowData.ActivateHandled)
-			return 0;
+			return false;
 
 		windowData.ActivateHandled = true;
 	}
-	else if (uMsg == WM_KILLFOCUS)
+	else if (uMsg == WM_SETFOCUS
+		|| uMsg == WM_KILLFOCUS)
 	{
-		if (hwnd == g_applicationWindow)
-			return 0;
+		if (hwnd == g_applicationWindow
+			&& windowData.ActivateHandled)
+			return false;
 	}
 
-	// Restore the original call.
-	return CallWindowProcW(windowData.OriginalProc, hwnd, uMsg, wParam, lParam);
+	return true;
 }
