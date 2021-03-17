@@ -2,9 +2,7 @@
 #include "utils.h"
 #include "tls.h"
 
-std::map<HWND, WindowData> g_windowDataA;
-std::map<HWND, WindowData> g_windowDataW;
-
+std::map<HWND, WindowData> g_windowData;
 std::atomic<bool> g_applicationInFocus = true;
 std::atomic<HWND> g_applicationWindow = nullptr;
 
@@ -29,8 +27,8 @@ LRESULT CALLBACK WndProcA(
 )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_lock);
-	auto itr = g_windowDataA.find(hwnd);
-	if (itr == g_windowDataA.end())
+	auto itr = g_windowData.find(hwnd);
+	if (itr == g_windowData.end())
 		return DefWindowProcA(hwnd, uMsg, wParam, lParam);
 
 	auto& windowData = itr->second;
@@ -38,7 +36,7 @@ LRESULT CALLBACK WndProcA(
 		return 0;
 
 	// Restore the original call.
-	return CallWindowProcA(windowData.OriginalProc, hwnd, uMsg, wParam, lParam);
+	return CallWindowProcA(windowData.OriginalProcA, hwnd, uMsg, wParam, lParam);
 }
 
 LRESULT CALLBACK WndProcW(
@@ -49,8 +47,8 @@ LRESULT CALLBACK WndProcW(
 )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_lock);
-	auto itr = g_windowDataW.find(hwnd);
-	if (itr == g_windowDataW.end())
+	auto itr = g_windowData.find(hwnd);
+	if (itr == g_windowData.end())
 		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 
 	auto& windowData = itr->second;
@@ -58,7 +56,7 @@ LRESULT CALLBACK WndProcW(
 		return 0;
 
 	// Restore the original call.
-	return CallWindowProcW(windowData.OriginalProc, hwnd, uMsg, wParam, lParam);
+	return CallWindowProcW(windowData.OriginalProcW, hwnd, uMsg, wParam, lParam);
 }
 
 bool WindowProcImpl(

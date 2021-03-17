@@ -2,7 +2,8 @@
 
 struct WindowData
 {
-	WNDPROC OriginalProc	= nullptr;
+	WNDPROC OriginalProcA	= nullptr;
+	WNDPROC OriginalProcW	= nullptr;
 	bool AppActivateHandled	= false;
 	bool ActivateHandled	= false;
 	bool Focused			= false;

@@ -17,8 +17,7 @@
 #include "WindowData.h"
 #include "settings.h"
 
-extern std::map<HWND, WindowData> g_windowDataA;
-extern std::map<HWND, WindowData> g_windowDataW;
+extern std::map<HWND, WindowData> g_windowData;
 extern std::atomic<bool> g_applicationInFocus;
 extern std::atomic<HWND> g_applicationWindow;
 extern std::atomic<DWORD> g_renderThreadId;

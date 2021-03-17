@@ -334,7 +334,7 @@ LONG_PTR WINAPI hooked_SetWindowLongPtrA(
 		&& dwNewLong != (LONG_PTR)WndProcA)
 	{
 		std::lock_guard<std::recursive_mutex> lock(g_lock);
-		g_windowDataA[hWnd].OriginalProc = (WNDPROC)dwNewLong;
+		g_windowData[hWnd].OriginalProcA = (WNDPROC)dwNewLong;
 		dwNewLong = (LONG_PTR)&WndProcA;
 	}
 
@@ -351,7 +351,7 @@ LONG_PTR WINAPI hooked_SetWindowLongPtrW(
 		&& dwNewLong != (LONG_PTR)WndProcW)
 	{
 		std::lock_guard<std::recursive_mutex> lock(g_lock);
-		g_windowDataW[hWnd].OriginalProc = (WNDPROC)dwNewLong;
+		g_windowData[hWnd].OriginalProcW = (WNDPROC)dwNewLong;
 		dwNewLong = (LONG_PTR)&WndProcW;
 	}
 
@@ -366,9 +366,9 @@ LONG_PTR WINAPI hooked_GetWindowLongPtrA(
 	if (nIndex == GWLP_WNDPROC)
 	{
 		std::lock_guard<std::recursive_mutex> lock(g_lock);
-		auto itr = g_windowDataA.find(hWnd);
-		if (itr != g_windowDataA.end())
-			return (LONG_PTR)itr->second.OriginalProc;
+		auto itr = g_windowData.find(hWnd);
+		if (itr != g_windowData.end())
+			return (LONG_PTR)itr->second.OriginalProcA;
 	}
 
 	return Real_GetWindowLongPtrA(hWnd, nIndex);
@@ -382,9 +382,9 @@ LONG_PTR WINAPI hooked_GetWindowLongPtrW(
 	if (nIndex == GWLP_WNDPROC)
 	{
 		std::lock_guard<std::recursive_mutex> lock(g_lock);
-		auto itr = g_windowDataW.find(hWnd);
-		if (itr != g_windowDataW.end())
-			return (LONG_PTR)itr->second.OriginalProc;
+		auto itr = g_windowData.find(hWnd);
+		if (itr != g_windowData.end())
+			return (LONG_PTR)itr->second.OriginalProcW;
 	}
 
 	return Real_GetWindowLongPtrW(hWnd, nIndex);
@@ -428,7 +428,7 @@ HWND WINAPI hooked_CreateWindowExA(
 			&& originalProc != WndProcA)
 		{
 			std::lock_guard<std::recursive_mutex> lock(g_lock);
-			g_windowDataA[hWnd].OriginalProc = originalProc;
+			g_windowData[hWnd].OriginalProcA = originalProc;
 			Real_SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR)&WndProcA);
 		}
 	}
@@ -473,7 +473,7 @@ HWND WINAPI hooked_CreateWindowExW(
 			&& originalProc != WndProcW)
 		{
 			std::lock_guard<std::recursive_mutex> lock(g_lock);
-			g_windowDataW[hWnd].OriginalProc = originalProc;
+			g_windowData[hWnd].OriginalProcW = originalProc;
 			Real_SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)&WndProcW);
 		}
 	}
@@ -490,8 +490,7 @@ BOOL WINAPI hooked_DestroyWindow(
 	// Remove this immediately afterwards so WindowProc still knows what to call.
 	{
 		std::lock_guard<std::recursive_mutex> lock(g_lock);
-		g_windowDataA.erase(hWnd);
-		g_windowDataW.erase(hWnd);
+		g_windowData.erase(hWnd);
 	}
 
 	return r;
