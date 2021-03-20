@@ -35,6 +35,12 @@
     <ClCompile Include="hooks.cpp" />
     <ClCompile Include="settings.cpp" />
     <ClCompile Include="tls.cpp" />
+    <ClCompile Include="My_IDirectInput8.cpp">
+      <Filter>DirectInput</Filter>
+    </ClCompile>
+    <ClCompile Include="My_IDirectInputDevice8.cpp">
+      <Filter>DirectInput</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -82,6 +88,12 @@
     <ClInclude Include="hooks.h" />
     <ClInclude Include="settings.h" />
     <ClInclude Include="tls.h" />
+    <ClInclude Include="My_IDirectInput8.h">
+      <Filter>DirectInput</Filter>
+    </ClInclude>
+    <ClInclude Include="My_IDirectInputDevice8.h">
+      <Filter>DirectInput</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="DirectSound">
@@ -95,6 +107,9 @@
     </Filter>
     <Filter Include="XAudio2">
       <UniqueIdentifier>{7f51640e-bf83-484c-821b-f198d8ddda56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DirectInput">
+      <UniqueIdentifier>{21d4c2de-ed2d-4a84-8a22-0246f0d45342}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

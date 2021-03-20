@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "utils.h"
 #include "hooks.h"
 
 bool g_loaded = false;

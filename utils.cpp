@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "utils.h"
 #include <ShlObj.h>
 
 bool ci_less::operator()(const std::wstring& str1, const std::wstring& str2) const

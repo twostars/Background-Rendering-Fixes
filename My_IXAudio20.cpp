@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "My_IXAudio20.h"
-#include "utils.h"
 
 My_IXAudio20::My_IXAudio20(IXAudio20* original)
 	: m_original(original)

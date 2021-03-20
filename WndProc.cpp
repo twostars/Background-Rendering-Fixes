@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "utils.h"
 #include "tls.h"
 
 std::map<HWND, WindowData> g_windowData;
@@ -67,8 +66,9 @@ bool WindowProcImpl(
 	_In_ WindowData& windowData
 )
 {
-	if (uMsg == WM_ACTIVATEAPP)
+	switch (uMsg)
 	{
+	case WM_ACTIVATEAPP:
 		g_applicationInFocus = (wParam != 0);
 
 		// We should exempt any app lost focus messages
@@ -82,9 +82,9 @@ bool WindowProcImpl(
 		}
 
 		windowData.AppActivateHandled = true;
-	}
-	else if (uMsg == WM_ACTIVATE)
-	{
+		break;
+
+	case WM_ACTIVATE:
 		windowData.Focused = (wParam != 0);
 
 		if (windowData.Focused
@@ -102,10 +102,10 @@ bool WindowProcImpl(
 		}
 
 		windowData.ActivateHandled = true;
-	}
-	else if (uMsg == WM_SETFOCUS
-		|| uMsg == WM_KILLFOCUS)
-	{
+		break;
+
+	case WM_SETFOCUS:
+	case WM_KILLFOCUS:
 		if (g_settings.UseBackgroundRendering
 			|| g_settings.UseBackgroundAudio)
 		{
@@ -113,6 +113,32 @@ bool WindowProcImpl(
 				&& windowData.ActivateHandled)
 				return false;
 		}
+		break;
+
+	case WM_INPUT:
+	{
+		if (g_settings.UseBackgroundRendering
+			&& !g_applicationInFocus)
+		{
+			UINT dwSize = sizeof(RAWINPUT);
+			BYTE lpb[sizeof(RAWINPUT)];
+
+			GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
+
+			auto raw = (RAWINPUT*)lpb;
+			if (raw->header.dwType == RIM_TYPEMOUSE)
+				return false;
+		}
+	} break;
+
+	default:
+		if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
+		{
+			if (g_settings.UseBackgroundRendering
+				&& !g_applicationInFocus)
+				return false;
+		}
+		break;
 	}
 
 	return true;

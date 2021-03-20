@@ -28,6 +28,16 @@ struct Settings
 	// This fix is credited to Kaldaien (Special K mod), though his implementation is far more thorough than mine.
 	bool TalesOfVesperia_MicroStutterFix = false;
 
+	// DirectInput will ordinarily be hooked to handle background input behaviour.
+	// Some games may not play nicely with this or otherwise detect it as malicious
+	// so we should have the option to selectively turn it off.
+	bool HookDirectInput = true;
+
+	// DirectSound will ordinarily be hooked to handle background audio behaviour.
+	// Some games may not play nicely with this or otherwise detect it as malicious
+	// so we should have the option to selectively turn it off.
+	bool HookDirectSound = true;
+
 	bool Load(const wchar_t* processName, const wchar_t* configPath);
 	void Save(const wchar_t* processName, const wchar_t* configPath) const;
 

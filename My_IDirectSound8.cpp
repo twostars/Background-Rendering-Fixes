@@ -8,16 +8,11 @@ My_IDirectSound8::My_IDirectSound8(IDirectSound8* original)
 
 HRESULT My_IDirectSound8::QueryInterface(REFIID riid, LPVOID*  ppvObj)
 {
-	if ((riid == IID_IDirectSound || riid == IID_IDirectSound8 || riid == IID_IUnknown)
-		&& ppvObj != nullptr)
-	{
-		AddRef();
-
+	HRESULT hr = m_original->QueryInterface(riid, ppvObj);
+	if (SUCCEEDED(hr))
 		*ppvObj = this;
-		return S_OK;
-	}
 
-	return m_original->QueryInterface(riid, ppvObj);
+	return hr;
 }
 
 ULONG My_IDirectSound8::AddRef()

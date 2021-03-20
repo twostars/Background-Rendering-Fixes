@@ -2,8 +2,8 @@
 #include "hooks.h"
 #include "My_IDirectSound.h"
 #include "My_IDirectSound8.h"
+#include "My_IDirectInput8.h"
 #include "My_IXAudio20.h"
-#include "utils.h"
 #include "tls.h"
 
 #include <d3dcommon.h>
@@ -108,6 +108,10 @@ BOOL (WINAPI *Real_SetCursorPos)(
 	int Y
 ) = 0;
 
+BOOL (WINAPI *Real_GetCursorPos)(
+	LPPOINT lpPoint
+) = 0;
+
 void (WINAPI *Real_Sleep)(
 	DWORD dwMilliseconds
 ) = 0;
@@ -139,6 +143,12 @@ HRESULT (WINAPI *Real_DirectSoundCreate8)(
 	LPUNKNOWN pUnkOuter
 ) = 0;
 
+HRESULT (WINAPI *Real_DirectInput8Create)(
+	HINSTANCE hinst,
+	DWORD dwVersion,
+	REFIID riidltf,
+	LPVOID* ppvOut,
+	LPUNKNOWN punkOuter) = 0;
 
 HRESULT (WINAPI *Real_D3D11CreateDeviceAndSwapChain)(IDXGIAdapter          *pAdapter,
                                       D3D_DRIVER_TYPE        DriverType,
@@ -233,6 +243,10 @@ BOOL WINAPI hooked_SetCursorPos(
 	int Y
 );
 
+BOOL WINAPI hooked_GetCursorPos(
+	LPPOINT lpPoint
+);
+
 void WINAPI hooked_Sleep(
 	DWORD dwMilliseconds
 );
@@ -262,6 +276,13 @@ HRESULT WINAPI hooked_DirectSoundCreate8(
 	LPDIRECTSOUND8* ppDS,
 	LPUNKNOWN pUnkOuter);
 
+HRESULT WINAPI hooked_DirectInput8Create(
+	HINSTANCE hinst,
+	DWORD dwVersion,
+	REFIID riidltf,
+	LPVOID* ppvOut,
+	LPUNKNOWN punkOuter);
+
 HRESULT WINAPI hooked_D3D11CreateDeviceAndSwapChain(IDXGIAdapter          *pAdapter,
                                       D3D_DRIVER_TYPE        DriverType,
                                       HMODULE                Software,
@@ -290,21 +311,36 @@ void InstallHooks()
 	MH_CreateHook(GetKeyState, hooked_GetKeyState, (LPVOID*)&Real_GetKeyState);
 	MH_CreateHook(GetKeyboardState, hooked_GetKeyboardState, (LPVOID*)&Real_GetKeyboardState);
 
-	HMODULE dsoundModule = GetModuleHandleW(L"DSOUND");
-	if (dsoundModule != nullptr)
+	if (g_settings.HookDirectSound)
 	{
-		FARPROC fnDirectSoundCreate = GetProcAddress(dsoundModule, "DirectSoundCreate");
-		if (fnDirectSoundCreate != nullptr)
-			MH_CreateHook(fnDirectSoundCreate, hooked_DirectSoundCreate, (LPVOID*)&Real_DirectSoundCreate);
+		HMODULE dsoundModule = GetModuleHandleW(L"DSOUND");
+		if (dsoundModule != nullptr)
+		{
+			FARPROC fnDirectSoundCreate = GetProcAddress(dsoundModule, "DirectSoundCreate");
+			if (fnDirectSoundCreate != nullptr)
+				MH_CreateHook(fnDirectSoundCreate, hooked_DirectSoundCreate, (LPVOID*)&Real_DirectSoundCreate);
 
-		FARPROC fnDirectSoundCreate8 = GetProcAddress(dsoundModule, "DirectSoundCreate8");
-		if (fnDirectSoundCreate8 != nullptr)
-			MH_CreateHook(fnDirectSoundCreate8, hooked_DirectSoundCreate8, (LPVOID*)&Real_DirectSoundCreate8);
+			FARPROC fnDirectSoundCreate8 = GetProcAddress(dsoundModule, "DirectSoundCreate8");
+			if (fnDirectSoundCreate8 != nullptr)
+				MH_CreateHook(fnDirectSoundCreate8, hooked_DirectSoundCreate8, (LPVOID*)&Real_DirectSoundCreate8);
+		}
+	}
+
+	if (g_settings.HookDirectInput)
+	{
+		HMODULE dinputModule = GetModuleHandleW(L"DINPUT8");
+		if (dinputModule != nullptr)
+		{
+			FARPROC fnDirectInput8Create = GetProcAddress(dinputModule, "DirectInput8Create");
+			if (fnDirectInput8Create != nullptr)
+				MH_CreateHook(fnDirectInput8Create, hooked_DirectInput8Create, (LPVOID*)&Real_DirectInput8Create);
+		}
 	}
 
 	MH_CreateHook(CoCreateInstance, hooked_CoCreateInstance, (LPVOID*)&Real_CoCreateInstance);
 	MH_CreateHook(ClipCursor, hooked_ClipCursor, (LPVOID*)&Real_ClipCursor);
 	MH_CreateHook(SetCursorPos, hooked_SetCursorPos, (LPVOID*)&Real_SetCursorPos);
+	MH_CreateHook(GetCursorPos, hooked_GetCursorPos, (LPVOID*)&Real_GetCursorPos);
 	MH_CreateHook(Sleep, hooked_Sleep, (LPVOID*)&Real_Sleep);
 
 	HMODULE d3d11Module = GetModuleHandleW(L"d3d11");
@@ -568,6 +604,27 @@ BOOL WINAPI hooked_SetCursorPos(int X, int Y)
 	return Real_SetCursorPos(X, Y);
 }
 
+BOOL WINAPI hooked_GetCursorPos(LPPOINT lpPoint)
+{
+	if (lpPoint == nullptr)
+		return FALSE;
+
+	static POINT ptLast = { 0 };
+
+	if (g_settings.UseBackgroundRendering
+		&& !g_applicationInFocus)
+	{
+		*lpPoint = ptLast;
+		return TRUE;
+	}
+
+	BOOL r = Real_GetCursorPos(lpPoint);
+	if (r)
+		ptLast = *lpPoint;
+
+	return r;
+}
+
 void WINAPI hooked_Sleep(
 	DWORD dwMilliseconds
 )
@@ -681,6 +738,24 @@ HRESULT WINAPI hooked_DirectSoundCreate8(
 	HRESULT hr = Real_DirectSoundCreate8(pcGuidDevice, ppDS, pUnkOuter);
 	if (SUCCEEDED(hr) && ppDS != nullptr)
 		*ppDS = new My_IDirectSound8(*ppDS);
+	return hr;
+}
+
+HRESULT WINAPI hooked_DirectInput8Create(
+	HINSTANCE hinst,
+	DWORD dwVersion,
+	REFIID riidltf,
+	LPVOID* ppvOut,
+	LPUNKNOWN punkOuter)
+{
+	HRESULT hr = Real_DirectInput8Create(hinst, dwVersion, riidltf, ppvOut, punkOuter);
+	if (SUCCEEDED(hr) && ppvOut != nullptr)
+	{
+		if (riidltf == IID_IDirectInput8A)
+			*ppvOut = new My_IDirectInput8A(static_cast<IDirectInput8A*>(*ppvOut));
+		else if (riidltf == IID_IDirectInput8W)
+			*ppvOut = new My_IDirectInput8W(static_cast<IDirectInput8W*>(*ppvOut));
+	}
 	return hr;
 }
 

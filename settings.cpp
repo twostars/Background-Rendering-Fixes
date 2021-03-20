@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "settings.h"
-#include "utils.h"
 
 Settings g_settings;
 
@@ -74,6 +73,9 @@ bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
 
 	TalesOfVesperia_MicroStutterFix = GetPrivateProfileInt(processName, L"TalesOfVesperia.MicroStutterFix", 0, configPath) != 0;
 
+	HookDirectInput = GetPrivateProfileInt(processName, L"HookDirectInput", 1, configPath) != 0;
+	HookDirectSound = GetPrivateProfileInt(processName, L"HookDirectSound", 1, configPath) != 0;
+
 	return true;
 }
 
@@ -97,6 +99,12 @@ void Settings::Save(const wchar_t* processName, const wchar_t* configPath) const
 
 	if (TalesOfVesperia_MicroStutterFix != DefaultSettings.TalesOfVesperia_MicroStutterFix)
 		WritePrivateProfileString(processName, L"TalesOfVesperia.MicroStutterFix", TalesOfVesperia_MicroStutterFix ? L"1" : L"0", configPath);
+
+	if (HookDirectInput != DefaultSettings.HookDirectInput)
+		WritePrivateProfileString(processName, L"HookDirectInput", HookDirectInput ? L"1" : L"0", configPath);
+
+	if (HookDirectSound != DefaultSettings.HookDirectSound)
+		WritePrivateProfileString(processName, L"HookDirectSound", HookDirectSound ? L"1" : L"0", configPath);
 }
 
 const std::wstring& Settings::GetDefaultConfigPath()
