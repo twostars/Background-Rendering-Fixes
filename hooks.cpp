@@ -370,8 +370,17 @@ LONG_PTR WINAPI hooked_SetWindowLongPtrA(
 		&& dwNewLong != (LONG_PTR)WndProcA)
 	{
 		std::lock_guard<std::recursive_mutex> lock(g_lock);
-		g_windowData[hWnd].OriginalProcA = (WNDPROC)dwNewLong;
-		dwNewLong = (LONG_PTR)&WndProcA;
+		auto itr = g_windowData.find(hWnd);
+		if (itr == g_windowData.end()
+			|| itr->second.OriginalProcA == nullptr)
+		{
+			g_windowData[hWnd].OriginalProcA = (WNDPROC)dwNewLong;
+			dwNewLong = (LONG_PTR)&WndProcA;
+		}
+		else
+		{
+			return (LONG_PTR)&WndProcA;
+		}
 	}
 
 	return Real_SetWindowLongPtrA(hWnd, nIndex, dwNewLong);
@@ -387,8 +396,17 @@ LONG_PTR WINAPI hooked_SetWindowLongPtrW(
 		&& dwNewLong != (LONG_PTR)WndProcW)
 	{
 		std::lock_guard<std::recursive_mutex> lock(g_lock);
-		g_windowData[hWnd].OriginalProcW = (WNDPROC)dwNewLong;
-		dwNewLong = (LONG_PTR)&WndProcW;
+		auto itr = g_windowData.find(hWnd);
+		if (itr == g_windowData.end()
+			|| itr->second.OriginalProcW == nullptr)
+		{
+			g_windowData[hWnd].OriginalProcW = (WNDPROC)dwNewLong;
+			dwNewLong = (LONG_PTR)&WndProcW;
+		}
+		else
+		{
+			return (LONG_PTR)&WndProcW;
+		}
 	}
 
 	return Real_SetWindowLongPtrW(hWnd, nIndex, dwNewLong);
@@ -425,7 +443,6 @@ LONG_PTR WINAPI hooked_GetWindowLongPtrW(
 
 	return Real_GetWindowLongPtrW(hWnd, nIndex);
 }
-
 
 HWND WINAPI hooked_CreateWindowExA(
 	DWORD      dwExStyle,
