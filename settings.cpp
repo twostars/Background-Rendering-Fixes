@@ -17,6 +17,8 @@ static const std::map<std::wstring, Settings, ci_less> DefaultSettings =
 	{ L"ed6_win3",			{} },
 	// The Legend of Heroes: Trails in the Sky the 3rd
 	{ L"ed6_win3_DX9",		{} },
+	// The Legend of Heroes: Trails from Zero
+	{ L"ED_ZERO",			{} },
 	// The Legend of Heroes: Trails of Cold Steel I
 	{ L"ed8",				{} },
 	// The Legend of Heroes: Trails of Cold Steel I
@@ -36,7 +38,9 @@ static const std::map<std::wstring, Settings, ci_less> DefaultSettings =
 	// Valheim
 	{ L"valheim",			{} },
 	// Tales of Vesperia: Definitive Edition
-	{ L"TOV_DE",			{ .TalesOfVesperia_MicroStutterFix = true } }
+	{ L"TOV_DE",			{ .TalesOfVesperia_MicroStutterFix = true } },
+	// Okami HD
+	{ L"okami",				{} }
 };
 
 bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
