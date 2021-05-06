@@ -41,6 +41,13 @@
     <ClCompile Include="My_IDirectInputDevice8.cpp">
       <Filter>DirectInput</Filter>
     </ClCompile>
+    <ClCompile Include="reset_app_audio_endpoint.cpp" />
+    <ClCompile Include="My_IDirectSoundBuffer.cpp">
+      <Filter>DirectSound</Filter>
+    </ClCompile>
+    <ClCompile Include="My_IDirectSoundBuffer8.cpp">
+      <Filter>DirectSound</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -93,6 +100,13 @@
     </ClInclude>
     <ClInclude Include="My_IDirectInputDevice8.h">
       <Filter>DirectInput</Filter>
+    </ClInclude>
+    <ClInclude Include="reset_app_audio_endpoint.h" />
+    <ClInclude Include="My_IDirectSoundBuffer.h">
+      <Filter>DirectSound</Filter>
+    </ClInclude>
+    <ClInclude Include="My_IDirectSoundBuffer8.h">
+      <Filter>DirectSound</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

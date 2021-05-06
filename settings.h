@@ -12,10 +12,11 @@ struct Settings
 	// This enables the 'global' flag to allow the game to provide background audio.
 	bool UseBackgroundAudio = true;
 
-	// For games that use XAudio2, they tend to not respect the per-app audio device setting
-	// provided by Windows, instead using the system default.
+	// Games tend to not respect the per-app audio device setting provided by Windows, instead using the system default.
 	// This will hook XAudio2 to replace the endpoint with the per-app audio device if it thinks
 	// it's requesting the system default (device index 0).
+	// For DirectSound games, it will also refresh the configured per-app audio endpoint
+	// on the first audio that's played, since it allows it to be changed, it just does not respect the configured default.
 	bool UseAppAudioDevice = true;
 
 	// Games sometimes try to clip your cursor inside the window.

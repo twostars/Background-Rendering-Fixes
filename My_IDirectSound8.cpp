@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "My_IDirectSound8.h"
+#include "My_IDirectSoundBuffer8.h"
 
 My_IDirectSound8::My_IDirectSound8(IDirectSound8* original)
 	: m_original(original)
@@ -32,6 +33,10 @@ ULONG My_IDirectSound8::Release()
 // IDirectSound methods
 HRESULT My_IDirectSound8::CreateSoundBuffer(LPCDSBUFFERDESC pcDSBufferDesc, LPDIRECTSOUNDBUFFER* ppDSBuffer, LPUNKNOWN pUnkOuter)
 {
+	// NOTE: this should be handled with more nuance via cooperative levels to ensure actual compatibility,
+	// and probably using another setting
+	// This is more for sharing audio with other applications, not *strictly* supporting background audio.
+#if 0
 	if (g_settings.UseBackgroundAudio)
 	{
 		if (pcDSBufferDesc != nullptr
@@ -47,10 +52,15 @@ HRESULT My_IDirectSound8::CreateSoundBuffer(LPCDSBUFFERDESC pcDSBufferDesc, LPDI
 				delete[] bufferDesc;
 
 			return hr;
-		}
+}
 	}
+#endif
 
-	return m_original->CreateSoundBuffer(pcDSBufferDesc, ppDSBuffer, pUnkOuter);
+	HRESULT hr = m_original->CreateSoundBuffer(pcDSBufferDesc, ppDSBuffer, pUnkOuter);
+	if (SUCCEEDED(hr))
+		*ppDSBuffer = new My_IDirectSoundBuffer8(*ppDSBuffer);
+
+	return hr;
 }
 
 HRESULT My_IDirectSound8::GetCaps(LPDSCAPS pDSCaps)
@@ -60,7 +70,8 @@ HRESULT My_IDirectSound8::GetCaps(LPDSCAPS pDSCaps)
 
 HRESULT My_IDirectSound8::DuplicateSoundBuffer(LPDIRECTSOUNDBUFFER pDSBufferOriginal, LPDIRECTSOUNDBUFFER* ppDSBufferDuplicate)
 {
-	return m_original->DuplicateSoundBuffer(pDSBufferOriginal, ppDSBufferDuplicate);
+	HRESULT hr = m_original->DuplicateSoundBuffer(pDSBufferOriginal, ppDSBufferDuplicate);
+	return hr;
 }
 
 HRESULT My_IDirectSound8::SetCooperativeLevel(HWND hwnd, DWORD dwLevel)

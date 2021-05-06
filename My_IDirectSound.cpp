@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "My_IDirectSound.h"
+#include "My_IDirectSoundBuffer.h"
 
 My_IDirectSound::My_IDirectSound(IDirectSound* original)
 	: m_original(original)
@@ -32,6 +33,10 @@ ULONG My_IDirectSound::Release()
 // IDirectSound methods
 HRESULT My_IDirectSound::CreateSoundBuffer(LPCDSBUFFERDESC pcDSBufferDesc, LPDIRECTSOUNDBUFFER* ppDSBuffer, LPUNKNOWN pUnkOuter)
 {
+	// NOTE: this should be handled with more nuance via cooperative levels to ensure actual compatibility,
+	// and probably using another setting
+	// This is more for sharing audio with other applications, not *strictly* supporting background audio.
+#if 0
 	if (g_settings.UseBackgroundAudio)
 	{
 		if (pcDSBufferDesc != nullptr
@@ -49,8 +54,12 @@ HRESULT My_IDirectSound::CreateSoundBuffer(LPCDSBUFFERDESC pcDSBufferDesc, LPDIR
 			return hr;
 		}
 	}
+#endif
 
-	return m_original->CreateSoundBuffer(pcDSBufferDesc, ppDSBuffer, pUnkOuter);
+	HRESULT hr = m_original->CreateSoundBuffer(pcDSBufferDesc, ppDSBuffer, pUnkOuter);
+	if (SUCCEEDED(hr))
+		*ppDSBuffer = new My_IDirectSoundBuffer(*ppDSBuffer);
+	return hr;
 }
 
 HRESULT My_IDirectSound::GetCaps(LPDSCAPS pDSCaps)

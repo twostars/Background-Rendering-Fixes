@@ -57,11 +57,3 @@ protected:
 	std::recursive_mutex m_lock;
 	std::set<My_IDirectInputDevice8W*> m_devices;
 };
-
-#ifdef UNICODE
-#define My_IDirectInput8 My_IDirectInput8W
-#define My_IDirectInputDevice8 My_IDirectInputDevice8W
-#else
-#define My_IDirectInput8 My_IDirectInput8A
-#define My_IDirectInputDevice8 My_IDirectInputDevice8A
-#endif
