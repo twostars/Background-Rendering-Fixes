@@ -10,16 +10,17 @@ int APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserve
 {
 	lpReserved;
 
-	auto& configPath = Settings::GetDefaultConfigPath();
-	auto& processName = GetProcessName();
-
 	// Unload the module if we don't care about hooking this process.
 	// This is important when the DLL is loaded globally in all processes via AppInit.
-	if (!g_settings.Load(processName.c_str(), configPath.c_str()))
-		return FALSE;
-
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
+	{
+		auto& configPath = Settings::GetDefaultConfigPath();
+		auto& processName = GetProcessName();
+		if (!g_settings.Load(processName.c_str(), configPath.c_str()))
+			return FALSE;
+
 		InitInstance(hModule);
+	}
 	else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 		ExitInstance(hModule);
 
