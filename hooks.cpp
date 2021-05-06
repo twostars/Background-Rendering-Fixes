@@ -313,7 +313,7 @@ void InstallHooks()
 
 	if (g_settings.HookDirectSound)
 	{
-		HMODULE dsoundModule = GetModuleHandleW(L"DSOUND");
+		HMODULE dsoundModule = LoadLibraryW(L"DSOUND");
 		if (dsoundModule != nullptr)
 		{
 			FARPROC fnDirectSoundCreate = GetProcAddress(dsoundModule, "DirectSoundCreate");
@@ -328,7 +328,7 @@ void InstallHooks()
 
 	if (g_settings.HookDirectInput)
 	{
-		HMODULE dinputModule = GetModuleHandleW(L"DINPUT8");
+		HMODULE dinputModule = LoadLibraryW(L"DINPUT8");
 		if (dinputModule != nullptr)
 		{
 			FARPROC fnDirectInput8Create = GetProcAddress(dinputModule, "DirectInput8Create");
@@ -343,7 +343,7 @@ void InstallHooks()
 	MH_CreateHook(GetCursorPos, hooked_GetCursorPos, (LPVOID*)&Real_GetCursorPos);
 	MH_CreateHook(Sleep, hooked_Sleep, (LPVOID*)&Real_Sleep);
 
-	HMODULE d3d11Module = GetModuleHandleW(L"d3d11");
+	HMODULE d3d11Module = LoadLibraryW(L"d3d11");
 	if (d3d11Module != nullptr)
 	{
 		FARPROC fnD3D11CreateDeviceAndSwapChain = GetProcAddress(d3d11Module, "D3D11CreateDeviceAndSwapChain");
