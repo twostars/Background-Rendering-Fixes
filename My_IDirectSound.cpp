@@ -69,7 +69,10 @@ HRESULT My_IDirectSound::GetCaps(LPDSCAPS pDSCaps)
 
 HRESULT My_IDirectSound::DuplicateSoundBuffer(LPDIRECTSOUNDBUFFER pDSBufferOriginal, LPDIRECTSOUNDBUFFER* ppDSBufferDuplicate)
 {
-	return m_original->DuplicateSoundBuffer(pDSBufferOriginal, ppDSBufferDuplicate);
+	HRESULT hr = m_original->DuplicateSoundBuffer(pDSBufferOriginal, ppDSBufferDuplicate);
+	if (SUCCEEDED(hr))
+		*ppDSBufferDuplicate = new My_IDirectSoundBuffer(*ppDSBufferDuplicate);
+	return hr;
 }
 
 HRESULT My_IDirectSound::SetCooperativeLevel(HWND hwnd, DWORD dwLevel)

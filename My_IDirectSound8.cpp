@@ -71,6 +71,8 @@ HRESULT My_IDirectSound8::GetCaps(LPDSCAPS pDSCaps)
 HRESULT My_IDirectSound8::DuplicateSoundBuffer(LPDIRECTSOUNDBUFFER pDSBufferOriginal, LPDIRECTSOUNDBUFFER* ppDSBufferDuplicate)
 {
 	HRESULT hr = m_original->DuplicateSoundBuffer(pDSBufferOriginal, ppDSBufferDuplicate);
+	if (SUCCEEDED(hr))
+		*ppDSBufferDuplicate = new My_IDirectSoundBuffer8(*ppDSBufferDuplicate);
 	return hr;
 }
 
