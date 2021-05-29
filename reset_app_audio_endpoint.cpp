@@ -176,36 +176,111 @@ protected:
 	HSTRING _hstr = nullptr;
 };
 
-void ResetAppAudioEndpoint()
+static std::mutex s_audioEndpointLock;
+static std::set<IDirectSoundBuffer*> s_soundBuffers;
+static std::atomic<bool> s_threadCreated = false;
+static bool s_endpointReset = false;
+
+DWORD WINAPI ResetAppAudioEndpointThread(LPVOID lpParam)
 {
-	static std::atomic<bool> run = false;
-
-	bool expected = false;
-	if (run.compare_exchange_weak(expected, true))
-		return;
-
-	if (FAILED(CoInitialize(nullptr)))
-		return;
-
-	DWORD processId = GetCurrentProcessId();
-
+	while (true)
 	{
-		ScopedHString classId(L"Windows.Media.Internal.AudioPolicyConfig");
-		IAudioPolicyConfig* config = nullptr;
-		if (FAILED(CombaseFunctions::get()->RoGetActivationFactory(classId.get(), IID_IAudioPolicyConfig, (void**)&config)))
 		{
-			CoUninitialize();
-			return;
+			std::lock_guard<std::mutex> lock(s_audioEndpointLock);
+			bool soundPlaying = false;
+			for (auto itr = s_soundBuffers.begin(); itr != s_soundBuffers.end();)
+			{
+				auto soundBuffer = *itr;
+				DWORD dwStatus;
+				if (SUCCEEDED(soundBuffer->GetStatus(&dwStatus)))
+				{
+					if ((dwStatus & DSBSTATUS_BUFFERLOST)
+						|| (dwStatus & DSBSTATUS_TERMINATED))
+					{
+						soundBuffer->Release();
+						itr = s_soundBuffers.erase(itr);
+						continue;
+					}
+
+					if (dwStatus & DSBSTATUS_PLAYING)
+					{
+						soundPlaying = true;
+						break;
+					}
+
+					++itr;
+				}
+			}
+
+			if (soundPlaying)
+				break;
 		}
 
-		HSTRING deviceId_ = nullptr;
-		if (SUCCEEDED(config->GetPersistedDefaultAudioEndpoint(processId, eRender, eMultimedia, &deviceId_)))
-		{
-			ScopedHString deviceId(deviceId_);
-			config->SetPersistedDefaultAudioEndpoint(processId, eRender, eMultimedia, deviceId.get());
-			config->SetPersistedDefaultAudioEndpoint(processId, eRender, eConsole, deviceId.get());
-		}
+		Sleep(100);
 	}
 
+	if (FAILED(CoInitialize(nullptr)))
+	{
+		WriteLog(L"ResetAppAudioEndpointThread(): CoInitialize() failed.\n");
+		s_threadCreated = false;
+		return 1;
+	}
+
+	ScopedHString classId(L"Windows.Media.Internal.AudioPolicyConfig");
+	IAudioPolicyConfig* config = nullptr;
+	if (FAILED(CombaseFunctions::get()->RoGetActivationFactory(classId.get(), IID_IAudioPolicyConfig, (void**)&config)))
+	{
+		WriteLog(L"ResetAppAudioEndpointThread(): RoGetActivationFactory() failed\n");
+		CoUninitialize();
+		s_threadCreated = false;
+		return 2;
+	}
+
+	HSTRING deviceId_ = nullptr;
+	HRESULT hr = config->GetPersistedDefaultAudioEndpoint(g_processId, eRender, eMultimedia, &deviceId_);
+	if (FAILED(hr))
+	{
+		WriteLog(L"ResetAppAudioEndpointThread(): GetPersistedDefaultAudioEndpoint() failed (pid=%X). hr=%X\n", g_processId, hr);
+		CoUninitialize();
+		s_threadCreated = false;
+		return 3;
+	}
+
+	ScopedHString deviceId(deviceId_);
+
+	config->SetPersistedDefaultAudioEndpoint(g_processId, eRender, eMultimedia, deviceId.get());
+	config->SetPersistedDefaultAudioEndpoint(g_processId, eRender, eConsole, deviceId.get());
+
+	{
+		std::lock_guard<std::mutex> lock(s_audioEndpointLock);
+		for (auto itr = s_soundBuffers.begin(); itr != s_soundBuffers.end();)
+		{
+			(*itr)->Release();
+			itr = s_soundBuffers.erase(itr);
+		}
+
+		s_endpointReset = true;
+	}
+
+
 	CoUninitialize();
+	return 0;
+}
+
+void ResetAppAudioEndpoint(IDirectSoundBuffer* soundBuffer)
+{
+	std::lock_guard<std::mutex> lock(s_audioEndpointLock);
+	if (s_endpointReset)
+		return;
+
+	bool expected = false;
+	if (s_threadCreated.compare_exchange_weak(expected, true))
+	{
+		DWORD dwThreadId;
+		if (CreateThread(nullptr, 0, ResetAppAudioEndpointThread, nullptr, 0, &dwThreadId) == nullptr)
+			s_threadCreated = false;
+	}
+
+	if (s_soundBuffers.insert(soundBuffer).second)
+		soundBuffer->AddRef();
 }

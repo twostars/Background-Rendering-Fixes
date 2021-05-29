@@ -2,6 +2,7 @@
 #include "hooks.h"
 
 bool g_loaded = false;
+DWORD g_processId;
 
 void InitInstance(HANDLE hModule);
 void ExitInstance(HANDLE hModule);
@@ -41,7 +42,9 @@ void InitInstance(HANDLE hModule)
 
 	MH_Initialize();
 	InstallHooks();
+
 	g_loaded = true;
+	g_processId = GetCurrentProcessId();
 }
 
 void ExitInstance(HANDLE hModule)

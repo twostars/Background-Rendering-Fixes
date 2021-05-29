@@ -82,7 +82,7 @@ HRESULT My_IDirectSoundBuffer::Play(DWORD dwReserved1, DWORD dwPriority, DWORD d
 	HRESULT hr = m_original->Play(dwReserved1, dwPriority, dwFlags);
 	if (SUCCEEDED(hr)
 		&& g_settings.UseAppAudioDevice)
-		ResetAppAudioEndpoint();
+		ResetAppAudioEndpoint(m_original);
 
 	return hr;
 }

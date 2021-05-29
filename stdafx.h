@@ -20,6 +20,7 @@
 #include "settings.h"
 #include "utils.h"
 
+extern DWORD g_processId;
 extern std::map<HWND, WindowData> g_windowData;
 extern std::atomic<bool> g_applicationInFocus;
 extern std::atomic<HWND> g_applicationWindow;
