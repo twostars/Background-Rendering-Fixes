@@ -19,6 +19,8 @@ static const std::map<std::wstring, Settings, ci_less> DefaultSettings =
 	{ L"ed6_win3_DX9",		{} },
 	// The Legend of Heroes: Trails from Zero
 	{ L"ED_ZERO",			{} },
+	// The Legend of Heroes: Trails to Azure
+	{ L"ED_AO",				{} },
 	// The Legend of Heroes: Trails of Cold Steel I
 	{ L"ed8",				{} },
 	// The Legend of Heroes: Trails of Cold Steel I
