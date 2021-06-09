@@ -181,43 +181,41 @@ static std::set<IDirectSoundBuffer*> s_soundBuffers;
 static std::atomic<bool> s_threadCreated = false;
 static bool s_endpointReset = false;
 
-DWORD WINAPI ResetAppAudioEndpointThread(LPVOID lpParam)
+static bool CheckAnySoundBufferIsPlaying()
 {
-	while (true)
+	std::lock_guard<std::mutex> lock(s_audioEndpointLock);
+	for (auto itr = s_soundBuffers.begin(); itr != s_soundBuffers.end();)
 	{
+		auto soundBuffer = *itr;
+		DWORD dwStatus;
+		if (FAILED(soundBuffer->GetStatus(&dwStatus)))
 		{
-			std::lock_guard<std::mutex> lock(s_audioEndpointLock);
-			bool soundPlaying = false;
-			for (auto itr = s_soundBuffers.begin(); itr != s_soundBuffers.end();)
-			{
-				auto soundBuffer = *itr;
-				DWORD dwStatus;
-				if (SUCCEEDED(soundBuffer->GetStatus(&dwStatus)))
-				{
-					if ((dwStatus & DSBSTATUS_BUFFERLOST)
-						|| (dwStatus & DSBSTATUS_TERMINATED))
-					{
-						soundBuffer->Release();
-						itr = s_soundBuffers.erase(itr);
-						continue;
-					}
-
-					if (dwStatus & DSBSTATUS_PLAYING)
-					{
-						soundPlaying = true;
-						break;
-					}
-
-					++itr;
-				}
-			}
-
-			if (soundPlaying)
-				break;
+			soundBuffer->Release();
+			itr = s_soundBuffers.erase(itr);
+			continue;
 		}
 
-		Sleep(100);
+		if ((dwStatus & DSBSTATUS_BUFFERLOST)
+			|| (dwStatus & DSBSTATUS_TERMINATED))
+		{
+			soundBuffer->Release();
+			itr = s_soundBuffers.erase(itr);
+			continue;
+		}
+
+		if (dwStatus & DSBSTATUS_PLAYING)
+			return true;
+
+		++itr;
 	}
+
+	return false;
+}
+
+DWORD WINAPI ResetAppAudioEndpointThread(LPVOID lpParam)
+{
+	while (!CheckAnySoundBufferIsPlaying())
+		Sleep(100);
 
 	if (FAILED(CoInitialize(nullptr)))
 	{
