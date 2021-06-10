@@ -39,6 +39,16 @@ struct Settings
 	// so we should have the option to selectively turn it off.
 	bool HookDirectSound = true;
 
+	// Some games do not cooperate well with mouse input & controller input.
+	// They may handle background input -- and wrongfully continue to use the mouse too.
+	// In these cases, we should just allow for disabling the mouse device entirely.
+	bool DisableMouse = false;
+
+	// Some games do not cooperate well with keyboard input & controller input.
+	// They may handle background input -- and wrongfully continue to use the keyboard too.
+	// In these cases, we should just allow for disabling the keyboard device entirely.
+	bool DisableKeyboard = false;
+
 	bool Load(const wchar_t* processName, const wchar_t* configPath);
 	void Save(const wchar_t* processName, const wchar_t* configPath) const;
 

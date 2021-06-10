@@ -32,6 +32,22 @@ ULONG My_IDirectInput8A::Release()
 
 HRESULT My_IDirectInput8A::CreateDevice(REFGUID rguid, LPDIRECTINPUTDEVICE8A* lplpDirectInputDevice, LPUNKNOWN pUnkOuter)
 {
+	if (g_settings.DisableMouse)
+	{
+		if (rguid == GUID_SysMouse
+			|| rguid == GUID_SysMouseEm
+			|| rguid == GUID_SysMouseEm2)
+			return E_FAIL;
+	}
+
+	if (g_settings.DisableKeyboard)
+	{
+		if (rguid == GUID_SysKeyboard
+			|| rguid == GUID_SysKeyboardEm
+			|| rguid == GUID_SysKeyboardEm2)
+			return E_FAIL;
+	}
+
 	HRESULT hr = m_original->CreateDevice(rguid, lplpDirectInputDevice, pUnkOuter);
 	if (SUCCEEDED(hr))
 	{
@@ -116,6 +132,22 @@ ULONG My_IDirectInput8W::Release()
 
 HRESULT My_IDirectInput8W::CreateDevice(REFGUID rguid, LPDIRECTINPUTDEVICE8W* lplpDirectInputDevice, LPUNKNOWN pUnkOuter)
 {
+	if (g_settings.DisableMouse)
+	{
+		if (rguid == GUID_SysMouse
+			|| rguid == GUID_SysMouseEm
+			|| rguid == GUID_SysMouseEm2)
+			return E_FAIL;
+	}
+
+	if (g_settings.DisableKeyboard)
+	{
+		if (rguid == GUID_SysKeyboard
+			|| rguid == GUID_SysKeyboardEm
+			|| rguid == GUID_SysKeyboardEm2)
+			return E_FAIL;
+	}
+
 	HRESULT hr = m_original->CreateDevice(rguid, lplpDirectInputDevice, pUnkOuter);
 	if (SUCCEEDED(hr))
 	{

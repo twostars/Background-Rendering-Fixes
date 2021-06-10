@@ -82,6 +82,9 @@ bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
 	HookDirectInput = GetPrivateProfileInt(processName, L"HookDirectInput", 1, configPath) != 0;
 	HookDirectSound = GetPrivateProfileInt(processName, L"HookDirectSound", 1, configPath) != 0;
 
+	DisableMouse = GetPrivateProfileInt(processName, L"DisableMouse", 1, configPath) != 0;
+	DisableKeyboard = GetPrivateProfileInt(processName, L"DisableKeyboard", 1, configPath) != 0;
+
 	return true;
 }
 
@@ -111,6 +114,12 @@ void Settings::Save(const wchar_t* processName, const wchar_t* configPath) const
 
 	if (HookDirectSound != DefaultSettings.HookDirectSound)
 		WritePrivateProfileString(processName, L"HookDirectSound", HookDirectSound ? L"1" : L"0", configPath);
+
+	if (DisableMouse != DefaultSettings.DisableMouse)
+		WritePrivateProfileString(processName, L"DisableMouse", DisableMouse ? L"1" : L"0", configPath);
+
+	if (DisableKeyboard != DefaultSettings.DisableKeyboard)
+		WritePrivateProfileString(processName, L"DisableKeyboard", DisableKeyboard ? L"1" : L"0", configPath);
 }
 
 const std::wstring& Settings::GetDefaultConfigPath()
