@@ -48,6 +48,7 @@
     <ClCompile Include="My_IDirectSoundBuffer8.cpp">
       <Filter>DirectSound</Filter>
     </ClCompile>
+    <ClCompile Include="CombaseFunctions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -108,6 +109,8 @@
     <ClInclude Include="My_IDirectSoundBuffer8.h">
       <Filter>DirectSound</Filter>
     </ClInclude>
+    <ClInclude Include="CombaseFunctions.h" />
+    <ClInclude Include="ScopedHString.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="DirectSound">

@@ -1,7 +1,8 @@
 #include "stdafx.h"
 
-#include <roapi.h>
-#include <winstring.h>
+#include "CombaseFunctions.h"
+#include "ScopedHString.h"
+
 #include <mmdeviceapi.h>
 #define INITGUID
 #include <guiddef.h>
@@ -40,140 +41,6 @@ interface IAudioPolicyConfig : IInspectable
 	virtual HRESULT STDMETHODCALLTYPE SetPersistedDefaultAudioEndpoint(DWORD processId, EDataFlow flow, ERole role, HSTRING deviceId) = 0;
 	virtual HRESULT STDMETHODCALLTYPE GetPersistedDefaultAudioEndpoint(DWORD processId, EDataFlow flow, ERole role, HSTRING* deviceId) = 0;
 	virtual HRESULT STDMETHODCALLTYPE ClearAllPersistedApplicationDefaultEndpoints() = 0;
-};
-
-// Provides access to functions in combase.dll which may not be available on
-// Windows 7. Loads functions dynamically at runtime to prevent library
-// dependencies.
-class CombaseFunctions
-{
-public:
-	CombaseFunctions() = default;
-	~CombaseFunctions()
-	{
-		if (combase_dll_)
-			FreeLibrary(combase_dll_);
-	}
-
-	bool LoadFunctions()
-	{
-		combase_dll_ = LoadLibraryW(L"combase.dll");
-		if (!combase_dll_)
-			return false;
-
-		get_factory_func_ = reinterpret_cast<decltype(&::RoGetActivationFactory)>(
-			GetProcAddress(combase_dll_, "RoGetActivationFactory"));
-		if (!get_factory_func_)
-			return false;
-
-		create_string_func_ = reinterpret_cast<decltype(&::WindowsCreateString)>(
-			GetProcAddress(combase_dll_, "WindowsCreateString"));
-		if (!create_string_func_)
-			return false;
-
-		delete_string_func_ = reinterpret_cast<decltype(&::WindowsDeleteString)>(
-			GetProcAddress(combase_dll_, "WindowsDeleteString"));
-		if (!delete_string_func_)
-			return false;
-
-		get_string_raw_buffer_func_ =
-			reinterpret_cast<decltype(&::WindowsGetStringRawBuffer)>(
-				GetProcAddress(combase_dll_, "WindowsGetStringRawBuffer"));
-		if (!get_string_raw_buffer_func_)
-			return false;
-		return true;
-	}
-
-	HRESULT RoGetActivationFactory(HSTRING class_id, const IID& iid, void** out_factory)
-	{
-		return get_factory_func_(class_id, iid, out_factory);
-	}
-
-	HRESULT WindowsCreateString(const WCHAR* src, uint32_t len, HSTRING* out_hstr)
-	{
-		return create_string_func_(src, len, out_hstr);
-	}
-
-	HRESULT WindowsDeleteString(HSTRING hstr) {
-		return delete_string_func_(hstr);
-	}
-
-	const WCHAR* WindowsGetStringRawBuffer(HSTRING hstr, uint32_t* out_len) {
-		return get_string_raw_buffer_func_(hstr, out_len);
-	}
-
-	static CombaseFunctions* get()
-	{
-		static CombaseFunctions _;
-		static bool initialized = false;
-		if (!initialized)
-			initialized = _.LoadFunctions();
-
-		return &_;
-	}
-
-private:
-	HMODULE combase_dll_ = nullptr;
-	decltype(&::RoGetActivationFactory) get_factory_func_ = nullptr;
-	decltype(&::WindowsCreateString) create_string_func_ = nullptr;
-	decltype(&::WindowsDeleteString) delete_string_func_ = nullptr;
-	decltype(&::WindowsGetStringRawBuffer) get_string_raw_buffer_func_ = nullptr;
-};
-
-class ScopedHString
-{
-public:
-	ScopedHString(const ScopedHString&) = delete;
-	ScopedHString& operator=(const ScopedHString&) = delete;
-
-	explicit ScopedHString(HSTRING hstr)
-		: _hstr(hstr)
-	{
-	}
-
-	explicit ScopedHString(const WCHAR* str) {
-		assign(str, wcslen(str));
-	}
-
-	explicit ScopedHString(const WCHAR* str, size_t len) {
-		assign(str, len);
-	}
-
-	void assign(const WCHAR* str, size_t len)
-	{
-		reset();
-		CombaseFunctions::get()->WindowsCreateString(str, len, &_hstr);
-	}
-
-	HSTRING get() const {
-		return _hstr;
-	}
-
-	void reset()
-	{
-		if (_hstr == nullptr)
-			return;
-
-		CombaseFunctions::get()->WindowsDeleteString(_hstr);
-		_hstr = nullptr;
-	}
-
-	PCWSTR str(uint32_t* len) const {
-		return CombaseFunctions::get()->WindowsGetStringRawBuffer(_hstr, len);
-	}
-
-	PCWSTR str() const
-	{
-		uint32_t len;
-		return str(&len);
-	}
-
-	~ScopedHString() {
-		reset();
-	}
-
-protected:
-	HSTRING _hstr = nullptr;
 };
 
 static std::mutex s_audioEndpointLock;

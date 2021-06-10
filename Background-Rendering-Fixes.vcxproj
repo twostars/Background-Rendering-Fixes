@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CombaseFunctions.cpp" />
     <ClCompile Include="hooks.cpp" />
     <ClCompile Include="IXAudio2.cpp" />
     <ClCompile Include="main.cpp">
@@ -52,6 +53,7 @@
     <ClCompile Include="WndProc.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CombaseFunctions.h" />
     <ClInclude Include="hooks.h" />
     <ClInclude Include="IXAudio2.h" />
     <ClInclude Include="IXAudio20.h" />
@@ -63,6 +65,7 @@
     <ClInclude Include="My_IDirectSoundBuffer8.h" />
     <ClInclude Include="My_IXAudio20.h" />
     <ClInclude Include="reset_app_audio_endpoint.h" />
+    <ClInclude Include="ScopedHString.h" />
     <ClInclude Include="settings.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="thirdparty\minhook\include\MinHook.h" />
