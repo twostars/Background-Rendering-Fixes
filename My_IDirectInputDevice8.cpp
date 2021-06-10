@@ -5,6 +5,16 @@
 My_IDirectInputDevice8A::My_IDirectInputDevice8A(REFGUID guid, IDirectInputDevice8A* original, My_IDirectInput8A* di)
 	: m_guid(guid), m_original(original), m_di(di)
 {
+	if (m_guid == GUID_SysMouse
+		|| m_guid == GUID_SysMouseEm
+		|| m_guid == GUID_SysMouseEm2)
+		m_deviceType = INPUT_DEVICE_MOUSE;
+	else if (m_guid == GUID_SysKeyboard
+		|| m_guid == GUID_SysKeyboardEm
+		|| m_guid == GUID_SysKeyboardEm2)
+		m_deviceType = INPUT_DEVICE_KEYBOARD;
+	else
+		m_deviceType = INPUT_DEVICE_UNKNOWN;
 }
 
 HRESULT My_IDirectInputDevice8A::QueryInterface(REFIID riid, LPVOID* ppvObj)
@@ -65,19 +75,24 @@ HRESULT My_IDirectInputDevice8A::Unacquire()
 
 HRESULT My_IDirectInputDevice8A::GetDeviceState(DWORD cbData, LPVOID lpvData)
 {
-	if (g_settings.UseBackgroundRendering
-		&& !g_applicationInFocus)
-	{
-		if (m_guid == GUID_SysMouse)
-			return DIERR_INPUTLOST;
-	}
-
 	return m_original->GetDeviceState(cbData, lpvData);
 }
 
 HRESULT My_IDirectInputDevice8A::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags)
 {
-	return m_original->GetDeviceData(cbObjectData, rgdod, pdwInOut, dwFlags);
+	HRESULT hr = m_original->GetDeviceData(cbObjectData, rgdod, pdwInOut, dwFlags);
+	if (SUCCEEDED(hr))
+	{
+		if (g_settings.UseBackgroundRendering /* needed to determine state */
+			&& !g_applicationInFocus)
+		{
+			if (m_deviceType == INPUT_DEVICE_KEYBOARD
+				|| m_deviceType == INPUT_DEVICE_MOUSE)
+				memset(rgdod, 0, cbObjectData);
+		}
+	}
+
+	return hr;
 }
 
 HRESULT My_IDirectInputDevice8A::SetDataFormat(LPCDIDATAFORMAT lpdf)
@@ -188,6 +203,16 @@ HRESULT My_IDirectInputDevice8A::GetImageInfo(LPDIDEVICEIMAGEINFOHEADERA lpdiDev
 My_IDirectInputDevice8W::My_IDirectInputDevice8W(REFGUID guid, IDirectInputDevice8W* original, My_IDirectInput8W* di)
 	: m_guid(guid), m_original(original), m_di(di)
 {
+	if (m_guid == GUID_SysMouse
+		|| m_guid == GUID_SysMouseEm
+		|| m_guid == GUID_SysMouseEm2)
+		m_deviceType = INPUT_DEVICE_MOUSE;
+	else if (m_guid == GUID_SysKeyboard
+		|| m_guid == GUID_SysKeyboardEm
+		|| m_guid == GUID_SysKeyboardEm2)
+		m_deviceType = INPUT_DEVICE_KEYBOARD;
+	else
+		m_deviceType = INPUT_DEVICE_UNKNOWN;
 }
 
 HRESULT My_IDirectInputDevice8W::QueryInterface(REFIID riid, LPVOID* ppvObj)
@@ -248,19 +273,24 @@ HRESULT My_IDirectInputDevice8W::Unacquire()
 
 HRESULT My_IDirectInputDevice8W::GetDeviceState(DWORD cbData, LPVOID lpvData)
 {
-	if (g_settings.UseBackgroundRendering
-		&& !g_applicationInFocus)
-	{
-		if (m_guid == GUID_SysMouse)
-			return DIERR_INPUTLOST;
-	}
-
 	return m_original->GetDeviceState(cbData, lpvData);
 }
 
 HRESULT My_IDirectInputDevice8W::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags)
 {
-	return m_original->GetDeviceData(cbObjectData, rgdod, pdwInOut, dwFlags);
+	HRESULT hr = m_original->GetDeviceData(cbObjectData, rgdod, pdwInOut, dwFlags);
+	if (SUCCEEDED(hr))
+	{
+		if (g_settings.UseBackgroundRendering /* needed to determine state */
+			&& !g_applicationInFocus)
+		{
+			if (m_deviceType == INPUT_DEVICE_KEYBOARD
+				|| m_deviceType == INPUT_DEVICE_MOUSE)
+				memset(rgdod, 0, cbObjectData);
+		}
+	}
+
+	return hr;
 }
 
 HRESULT My_IDirectInputDevice8W::SetDataFormat(LPCDIDATAFORMAT lpdf)

@@ -1,5 +1,12 @@
 #pragma once
 
+enum InputDeviceType
+{
+	INPUT_DEVICE_UNKNOWN,
+	INPUT_DEVICE_MOUSE,
+	INPUT_DEVICE_KEYBOARD
+};
+
 class My_IDirectInput8A;
 class My_IDirectInputDevice8A : public IDirectInputDevice8A
 {
@@ -44,6 +51,7 @@ public:
 
 protected:
 	REFGUID m_guid;
+	InputDeviceType m_deviceType;
 	IDirectInputDevice8A* m_original;
 	My_IDirectInput8A* m_di;
 };
@@ -92,6 +100,7 @@ public:
 
 protected:
 	REFGUID m_guid;
+	InputDeviceType m_deviceType;
 	IDirectInputDevice8W* m_original;
 	My_IDirectInput8W* m_di;
 };
