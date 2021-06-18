@@ -10,7 +10,8 @@ My_IDirectSoundBuffer::My_IDirectSoundBuffer(IDirectSoundBuffer* original)
 HRESULT My_IDirectSoundBuffer::QueryInterface(REFIID riid, LPVOID* ppvObj)
 {
 	HRESULT hr = m_original->QueryInterface(riid, ppvObj);
-	if (SUCCEEDED(hr))
+	if (SUCCEEDED(hr)
+		&& riid == IID_IDirectSoundBuffer)
 		*ppvObj = this;
 
 	return hr;
