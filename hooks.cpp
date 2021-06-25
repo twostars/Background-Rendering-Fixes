@@ -8,6 +8,8 @@
 
 #include <d3dcommon.h>
 
+extern bool g_loaded;
+
 struct IDXGIAdapter;
 struct DXGI_SWAP_CHAIN_DESC;
 struct IDXGISwapChain;
@@ -84,8 +86,9 @@ BOOL (WINAPI *Real_DestroyWindow)(
 	HWND hWnd
 ) = 0;
 
-HWND (*Real_GetActiveWindow)() = 0;
-HWND (*Real_GetForegroundWindow)() = 0;
+HWND (WINAPI *Real_GetActiveWindow)() = 0;
+HWND (WINAPI *Real_GetForegroundWindow)() = 0;
+HWND (WINAPI *Real_GetFocus)() = 0;
 
 SHORT (WINAPI *Real_GetAsyncKeyState)(
 	int vKey
@@ -219,8 +222,9 @@ BOOL WINAPI hooked_DestroyWindow(
 	HWND hWnd
 );
 
-HWND hooked_GetActiveWindow();
-HWND hooked_GetForegroundWindow();
+HWND WINAPI hooked_GetActiveWindow();
+HWND WINAPI hooked_GetForegroundWindow();
+HWND WINAPI hooked_GetFocus();
 
 SHORT WINAPI hooked_GetAsyncKeyState(
 	int vKey
@@ -307,6 +311,7 @@ void InstallHooks()
 	MH_CreateHook(DestroyWindow, hooked_DestroyWindow, (LPVOID*)&Real_DestroyWindow);
 	MH_CreateHook(GetActiveWindow, hooked_GetActiveWindow, (LPVOID*)&Real_GetActiveWindow);
 	MH_CreateHook(GetForegroundWindow, hooked_GetForegroundWindow, (LPVOID*)&Real_GetForegroundWindow);
+	MH_CreateHook(GetFocus, hooked_GetFocus, (LPVOID*)&Real_GetFocus);
 	MH_CreateHook(GetAsyncKeyState, hooked_GetAsyncKeyState, (LPVOID*)&Real_GetAsyncKeyState);
 	MH_CreateHook(GetKeyState, hooked_GetKeyState, (LPVOID*)&Real_GetKeyState);
 	MH_CreateHook(GetKeyboardState, hooked_GetKeyboardState, (LPVOID*)&Real_GetKeyboardState);
@@ -549,7 +554,7 @@ BOOL WINAPI hooked_DestroyWindow(
 	return r;
 }
 
-HWND hooked_GetActiveWindow()
+HWND WINAPI hooked_GetActiveWindow()
 {
 	if (g_settings.UseBackgroundRendering
 		|| g_settings.UseBackgroundAudio)
@@ -561,7 +566,7 @@ HWND hooked_GetActiveWindow()
 	return Real_GetActiveWindow();
 }
 
-HWND hooked_GetForegroundWindow()
+HWND WINAPI hooked_GetForegroundWindow()
 {
 	if (g_settings.UseBackgroundRendering
 		|| g_settings.UseBackgroundAudio)
@@ -571,6 +576,18 @@ HWND hooked_GetForegroundWindow()
 	}
 
 	return Real_GetForegroundWindow();
+}
+
+HWND WINAPI hooked_GetFocus()
+{
+	if (g_settings.UseBackgroundRendering
+		|| g_settings.UseBackgroundAudio)
+	{
+		if (!g_applicationInFocus)
+			return g_applicationWindow;
+	}
+
+	return Real_GetFocus();
 }
 
 SHORT WINAPI hooked_GetAsyncKeyState(int vKey)

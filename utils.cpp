@@ -257,11 +257,35 @@ bool GetDefaultAudioEndpointIDForThisProcess(std::wstring* deviceID)
 	return GetDefaultAudioEndpointIDForProcess(processPath, deviceID);
 }
 
-void WriteLog(const wchar_t* fmt, ...)
+void WriteLogA(const char* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
+	WriteLogExA(fmt, args);
+	va_end(args);
+}
 
+void WriteLogExA(const char* fmt, va_list args)
+{
+	auto path = GetStoragePath() + L"\\log.txt";
+	FILE* fp = _wfopen(path.c_str(), L"a");
+	if (fp != nullptr)
+	{
+		vfprintf(fp, fmt, args);
+		fclose(fp);
+	}
+}
+
+void WriteLogW(const wchar_t* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	WriteLogExW(fmt, args);
+	va_end(args);
+}
+
+void WriteLogExW(const wchar_t* fmt, va_list args)
+{
 	auto path = GetStoragePath() + L"\\log.txt";
 	FILE* fp = _wfopen(path.c_str(), L"a");
 	if (fp != nullptr)
@@ -269,5 +293,9 @@ void WriteLog(const wchar_t* fmt, ...)
 		vfwprintf(fp, fmt, args);
 		fclose(fp);
 	}
-	va_end(args);
+
+	wchar_t buffer[1024] = { 0 };
+	vswprintf(buffer, fmt, args);
+	OutputDebugStringW(buffer);
 }
+

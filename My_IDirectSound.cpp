@@ -36,7 +36,6 @@ HRESULT My_IDirectSound::CreateSoundBuffer(LPCDSBUFFERDESC pcDSBufferDesc, LPDIR
 	// NOTE: this should be handled with more nuance via cooperative levels to ensure actual compatibility,
 	// and probably using another setting
 	// This is more for sharing audio with other applications, not *strictly* supporting background audio.
-#if 0
 	if (g_settings.UseBackgroundAudio)
 	{
 		if (pcDSBufferDesc != nullptr
@@ -54,7 +53,6 @@ HRESULT My_IDirectSound::CreateSoundBuffer(LPCDSBUFFERDESC pcDSBufferDesc, LPDIR
 			return hr;
 		}
 	}
-#endif
 
 	HRESULT hr = m_original->CreateSoundBuffer(pcDSBufferDesc, ppDSBuffer, pUnkOuter);
 	if (SUCCEEDED(hr))

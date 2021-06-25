@@ -10,7 +10,7 @@ struct Settings
 	// For games that use DirectSound, they tend to by default have
 	// no option to continue to play audio in the background.
 	// This enables the 'global' flag to allow the game to provide background audio.
-	bool UseBackgroundAudio = true;
+	bool UseBackgroundAudio = false; /* this is experimental and requires nuance, so it should be opt-in only */
 
 	// Games tend to not respect the per-app audio device setting provided by Windows, instead using the system default.
 	// This will hook XAudio2 to replace the endpoint with the per-app audio device if it thinks

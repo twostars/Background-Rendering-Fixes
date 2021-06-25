@@ -33,6 +33,10 @@ static const std::map<std::wstring, Settings, ci_less> DefaultSettings =
 	{ L"ed8_3_PC",			{} },
 	// The Legend of Heroes: Trails of Cold Steel III
 	{ L"ed8_3_PC_JP",		{} },
+	// The Legend of Heroes: Trails of Cold Steel IV
+	{ L"ed8_4_PC",			{ .UseBackgroundAudio = true } },
+	// The Legend of Heroes: Trails of Cold Steel IV
+	{ L"ed8_4_PC_JP",		{ .UseBackgroundAudio = true } },
 	// Final Fantasy XIII
 	{ L"ffxiiiimg",			{} },
 	// A Hat in Time
@@ -42,7 +46,9 @@ static const std::map<std::wstring, Settings, ci_less> DefaultSettings =
 	// Tales of Vesperia: Definitive Edition
 	{ L"TOV_DE",			{ .TalesOfVesperia_MicroStutterFix = true } },
 	// Okami HD
-	{ L"okami",				{} }
+	{ L"okami",				{} },
+	// Tell Me Why
+	{ L"TME-Win64-Shipping", {} }
 };
 
 bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
@@ -73,7 +79,7 @@ bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
 	}
 
 	UseBackgroundRendering = GetPrivateProfileInt(processName, L"UseBackgroundRendering", 1, configPath) != 0;
-	UseBackgroundAudio = GetPrivateProfileInt(processName, L"UseBackgroundAudio", 1, configPath) != 0;
+	UseBackgroundAudio = GetPrivateProfileInt(processName, L"UseBackgroundAudio", 0, configPath) != 0;
 	UseAppAudioDevice = GetPrivateProfileInt(processName, L"UseAppAudioDevice", 1, configPath) != 0;
 	UseUnclippedCursor = GetPrivateProfileInt(processName, L"UseUnclippedCursor", 1, configPath) != 0;
 
