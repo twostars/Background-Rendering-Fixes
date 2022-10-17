@@ -1,7 +1,19 @@
 #pragma once
 
+enum
+{
+	LOGLEVEL_NONE		= 0,
+	LOGLEVEL_CRITICAL	= 1,
+	LOGLEVEL_INFO		= 10,
+	LOGLEVEL_DEBUG		= 20
+};
+
 struct Settings
 {
+	uint32_t LogLevel = LOGLEVEL_INFO;
+
+	bool WindowHooks = true;
+
 	// Tricks the game into thinking it hasn't lost focus
 	// so as to allow it to continue rendering in the background.
 	// Background input will continue to be disregarded.

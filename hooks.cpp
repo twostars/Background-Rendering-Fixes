@@ -166,6 +166,12 @@ HRESULT (WINAPI *Real_D3D11CreateDeviceAndSwapChain)(IDXGIAdapter          *pAda
  _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext) = 0;
 
+void (*Real_SDL_WarpMouseInWindow)(
+	struct SDL_Window* window,
+	int x,
+	int y
+) = 0;
+
 LONG_PTR WINAPI hooked_SetWindowLongPtrA(
 	HWND     hWnd,
 	int      nIndex,
@@ -300,21 +306,31 @@ HRESULT WINAPI hooked_D3D11CreateDeviceAndSwapChain(IDXGIAdapter          *pAdap
  _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext);
 
+void hooked_SDL_WarpMouseInWindow(
+	struct SDL_Window* window,
+	int x,
+	int y
+);
+
 void InstallHooks()
 {
-	MH_CreateHook(SetWindowLongPtrA, hooked_SetWindowLongPtrA, (LPVOID*)&Real_SetWindowLongPtrA);
-	MH_CreateHook(SetWindowLongPtrW, hooked_SetWindowLongPtrW, (LPVOID*)&Real_SetWindowLongPtrW);
-	MH_CreateHook(GetWindowLongPtrA, hooked_GetWindowLongPtrA, (LPVOID*)&Real_GetWindowLongPtrA);
-	MH_CreateHook(GetWindowLongPtrW, hooked_GetWindowLongPtrW, (LPVOID*)&Real_GetWindowLongPtrW);
-	MH_CreateHook(CreateWindowExA, hooked_CreateWindowExA, (LPVOID*)&Real_CreateWindowExA);
-	MH_CreateHook(CreateWindowExW, hooked_CreateWindowExW, (LPVOID*)&Real_CreateWindowExW);
-	MH_CreateHook(DestroyWindow, hooked_DestroyWindow, (LPVOID*)&Real_DestroyWindow);
-	MH_CreateHook(GetActiveWindow, hooked_GetActiveWindow, (LPVOID*)&Real_GetActiveWindow);
-	MH_CreateHook(GetForegroundWindow, hooked_GetForegroundWindow, (LPVOID*)&Real_GetForegroundWindow);
-	MH_CreateHook(GetFocus, hooked_GetFocus, (LPVOID*)&Real_GetFocus);
-	MH_CreateHook(GetAsyncKeyState, hooked_GetAsyncKeyState, (LPVOID*)&Real_GetAsyncKeyState);
-	MH_CreateHook(GetKeyState, hooked_GetKeyState, (LPVOID*)&Real_GetKeyState);
-	MH_CreateHook(GetKeyboardState, hooked_GetKeyboardState, (LPVOID*)&Real_GetKeyboardState);
+	if (g_settings.WindowHooks)
+	{
+		MH_CreateHook(SetWindowLongPtrA, hooked_SetWindowLongPtrA, (LPVOID*)&Real_SetWindowLongPtrA);
+		MH_CreateHook(SetWindowLongPtrW, hooked_SetWindowLongPtrW, (LPVOID*)&Real_SetWindowLongPtrW);
+		MH_CreateHook(GetWindowLongPtrA, hooked_GetWindowLongPtrA, (LPVOID*)&Real_GetWindowLongPtrA);
+		MH_CreateHook(GetWindowLongPtrW, hooked_GetWindowLongPtrW, (LPVOID*)&Real_GetWindowLongPtrW);
+		MH_CreateHook(CreateWindowExA, hooked_CreateWindowExA, (LPVOID*)&Real_CreateWindowExA);
+		MH_CreateHook(CreateWindowExW, hooked_CreateWindowExW, (LPVOID*)&Real_CreateWindowExW);
+		MH_CreateHook(DestroyWindow, hooked_DestroyWindow, (LPVOID*)&Real_DestroyWindow);
+		MH_CreateHook(GetActiveWindow, hooked_GetActiveWindow, (LPVOID*)&Real_GetActiveWindow);
+		MH_CreateHook(GetForegroundWindow, hooked_GetForegroundWindow, (LPVOID*)&Real_GetForegroundWindow);
+		MH_CreateHook(GetFocus, hooked_GetFocus, (LPVOID*)&Real_GetFocus);
+		MH_CreateHook(GetAsyncKeyState, hooked_GetAsyncKeyState, (LPVOID*)&Real_GetAsyncKeyState);
+		MH_CreateHook(GetKeyState, hooked_GetKeyState, (LPVOID*)&Real_GetKeyState);
+		MH_CreateHook(GetKeyboardState, hooked_GetKeyboardState, (LPVOID*)&Real_GetKeyboardState);
+		MH_CreateHook(GetCursorPos, hooked_GetCursorPos, (LPVOID*)&Real_GetCursorPos);
+	}
 
 	if (g_settings.HookDirectSound)
 	{
@@ -345,7 +361,6 @@ void InstallHooks()
 	MH_CreateHook(CoCreateInstance, hooked_CoCreateInstance, (LPVOID*)&Real_CoCreateInstance);
 	MH_CreateHook(ClipCursor, hooked_ClipCursor, (LPVOID*)&Real_ClipCursor);
 	MH_CreateHook(SetCursorPos, hooked_SetCursorPos, (LPVOID*)&Real_SetCursorPos);
-	MH_CreateHook(GetCursorPos, hooked_GetCursorPos, (LPVOID*)&Real_GetCursorPos);
 	MH_CreateHook(Sleep, hooked_Sleep, (LPVOID*)&Real_Sleep);
 
 	HMODULE d3d11Module = LoadLibraryW(L"d3d11");
@@ -354,6 +369,14 @@ void InstallHooks()
 		FARPROC fnD3D11CreateDeviceAndSwapChain = GetProcAddress(d3d11Module, "D3D11CreateDeviceAndSwapChain");
 		if (fnD3D11CreateDeviceAndSwapChain != nullptr)
 			MH_CreateHook(fnD3D11CreateDeviceAndSwapChain, hooked_D3D11CreateDeviceAndSwapChain, (LPVOID*)&Real_D3D11CreateDeviceAndSwapChain);
+	}
+
+	HMODULE sdl2Module = LoadLibraryW(L"SDL2");
+	if (sdl2Module != nullptr)
+	{
+		FARPROC fnSDL_WarpMouseInWindow = GetProcAddress(sdl2Module, "SDL_WarpMouseInWindow");
+		if (fnSDL_WarpMouseInWindow != nullptr)
+			MH_CreateHook(fnSDL_WarpMouseInWindow, hooked_SDL_WarpMouseInWindow, (LPVOID*)&Real_SDL_WarpMouseInWindow);
 	}
 
 	MH_CreateHook(RaiseException, hooked_RaiseException, (LPVOID*)&Real_RaiseException);
@@ -371,6 +394,9 @@ LONG_PTR WINAPI hooked_SetWindowLongPtrA(
 	LONG_PTR dwNewLong
 )
 {
+	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
+		WriteLog(L"SetWindowLongPtrA(%X, %d, %X)\n", hWnd, nIndex, dwNewLong);
+
 	if (nIndex == GWLP_WNDPROC
 		&& dwNewLong != (LONG_PTR)WndProcA)
 	{
@@ -397,6 +423,9 @@ LONG_PTR WINAPI hooked_SetWindowLongPtrW(
 	LONG_PTR dwNewLong
 )
 {
+	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
+		WriteLog(L"SetWindowLongPtrW(%X, %d, %X)\n", hWnd, nIndex, dwNewLong);
+
 	if (nIndex == GWLP_WNDPROC
 		&& dwNewLong != (LONG_PTR)WndProcW)
 	{
@@ -422,6 +451,9 @@ LONG_PTR WINAPI hooked_GetWindowLongPtrA(
 	int  nIndex
 )
 {
+	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
+		WriteLog(L"GetWindowLongPtrA(%X, %d)\n", hWnd, nIndex);
+
 	if (nIndex == GWLP_WNDPROC)
 	{
 		std::lock_guard<std::recursive_mutex> lock(g_lock);
@@ -438,6 +470,9 @@ LONG_PTR WINAPI hooked_GetWindowLongPtrW(
 	int  nIndex
 )
 {
+	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
+		WriteLog(L"GetWindowLongPtrW(%X, %d)\n", hWnd, nIndex);
+
 	if (nIndex == GWLP_WNDPROC)
 	{
 		std::lock_guard<std::recursive_mutex> lock(g_lock);
@@ -464,6 +499,9 @@ HWND WINAPI hooked_CreateWindowExA(
 	LPVOID     lpParam
 )
 {
+	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
+		WriteLog(L"CreateWindowExA(%X, %hs, %hs, %X)\n", dwExStyle, lpClassName, lpWindowName, dwStyle);
+
 	HWND hWnd = Real_CreateWindowExA(
 		dwExStyle,
 		lpClassName,
@@ -479,9 +517,12 @@ HWND WINAPI hooked_CreateWindowExA(
 		lpParam
 	);
 
+	if (g_settings.LogLevel <= LOGLEVEL_INFO)
+		WriteLog(L"CreateWindowExA(%X, %hs, %hs, %X) = %X\n", dwExStyle, lpClassName, lpWindowName, dwStyle, hWnd);
+
 	if (hWnd != nullptr)
 	{
-		WNDPROC originalProc = (WNDPROC)GetWindowLongPtrA(hWnd, GWLP_WNDPROC);
+		WNDPROC originalProc = (WNDPROC)Real_GetWindowLongPtrA(hWnd, GWLP_WNDPROC);
 		if (originalProc != nullptr
 			&& originalProc != WndProcA)
 		{
@@ -509,6 +550,9 @@ HWND WINAPI hooked_CreateWindowExW(
 	LPVOID     lpParam
 )
 {
+	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
+		WriteLog(L"CreateWindowExW(%X, %ls, %ls, %X)\n", dwExStyle, lpClassName, lpWindowName, dwStyle);
+
 	HWND hWnd = Real_CreateWindowExW(
 		dwExStyle,
 		lpClassName,
@@ -524,9 +568,12 @@ HWND WINAPI hooked_CreateWindowExW(
 		lpParam
 	);
 
+	if (g_settings.LogLevel <= LOGLEVEL_INFO)
+		WriteLog(L"CreateWindowExW(%X, %ls, %ls, %X) = %X\n", dwExStyle, lpClassName, lpWindowName, dwStyle, hWnd);
+
 	if (hWnd != nullptr)
 	{
-		WNDPROC originalProc = (WNDPROC)GetWindowLongPtrW(hWnd, GWLP_WNDPROC);
+		WNDPROC originalProc = (WNDPROC)Real_GetWindowLongPtrW(hWnd, GWLP_WNDPROC);
 		if (originalProc != nullptr
 			&& originalProc != WndProcW)
 		{
@@ -543,6 +590,9 @@ BOOL WINAPI hooked_DestroyWindow(
 	HWND hWnd
 )
 {
+	if (g_settings.LogLevel <= LOGLEVEL_INFO)
+		WriteLog(L"DestroyWindow(%X)\n", hWnd);
+
 	BOOL r = Real_DestroyWindow(hWnd);
 
 	// Remove this immediately afterwards so WindowProc still knows what to call.
@@ -633,7 +683,7 @@ BOOL WINAPI hooked_SetCursorPos(int X, int Y)
 {
 	if ((g_settings.UseBackgroundRendering && !g_applicationInFocus)
 		|| g_settings.UseUnclippedCursor)
-		return Real_ClipCursor(nullptr);
+		return TRUE;
 
 	return Real_SetCursorPos(X, Y);
 }
@@ -758,6 +808,9 @@ HRESULT WINAPI hooked_DirectSoundCreate(
 	LPDIRECTSOUND* ppDS,
 	LPUNKNOWN pUnkOuter)
 {
+	if (g_settings.LogLevel <= LOGLEVEL_INFO)
+		WriteLog(L"DirectSoundCreate()\n");
+
 	HRESULT hr = Real_DirectSoundCreate(pcGuidDevice, ppDS, pUnkOuter);
 	if (SUCCEEDED(hr) && ppDS != nullptr)
 		*ppDS = new My_IDirectSound(*ppDS);
@@ -769,6 +822,9 @@ HRESULT WINAPI hooked_DirectSoundCreate8(
 	LPDIRECTSOUND8* ppDS,
 	LPUNKNOWN pUnkOuter)
 {
+	if (g_settings.LogLevel <= LOGLEVEL_INFO)
+		WriteLog(L"DirectSoundCreate8()\n");
+
 	HRESULT hr = Real_DirectSoundCreate8(pcGuidDevice, ppDS, pUnkOuter);
 	if (SUCCEEDED(hr) && ppDS != nullptr)
 		*ppDS = new My_IDirectSound8(*ppDS);
@@ -782,6 +838,9 @@ HRESULT WINAPI hooked_DirectInput8Create(
 	LPVOID* ppvOut,
 	LPUNKNOWN punkOuter)
 {
+	if (g_settings.LogLevel <= LOGLEVEL_INFO)
+		WriteLog(L"DirectInput8Create()\n");
+
 	HRESULT hr = Real_DirectInput8Create(hinst, dwVersion, riidltf, ppvOut, punkOuter);
 	if (SUCCEEDED(hr) && ppvOut != nullptr)
 	{
@@ -806,6 +865,9 @@ HRESULT WINAPI hooked_D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter,
 	_Out_opt_                            D3D_FEATURE_LEVEL* pFeatureLevel,
 	_Out_opt_                            ID3D11DeviceContext** ppImmediateContext)
 {
+	if (g_settings.LogLevel <= LOGLEVEL_INFO)
+		WriteLog(L"D3D11CreateDeviceAndSwapChain()\n");
+
 	g_renderThreadId = g_tls.ThreadID;
 
 	return Real_D3D11CreateDeviceAndSwapChain(
@@ -821,4 +883,13 @@ HRESULT WINAPI hooked_D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter,
 		ppDevice,
 		pFeatureLevel,
 		ppImmediateContext);
+}
+
+void hooked_SDL_WarpMouseInWindow(
+	struct SDL_Window* window,
+	int x,
+	int y)
+{
+	if (!g_settings.UseUnclippedCursor)
+		Real_SDL_WarpMouseInWindow(window, x, y);
 }

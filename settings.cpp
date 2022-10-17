@@ -48,7 +48,9 @@ static const std::map<std::wstring, Settings, ci_less> DefaultSettings =
 	// Okami HD
 	{ L"okami",				{} },
 	// Tell Me Why
-	{ L"TME-Win64-Shipping", {} }
+	{ L"TME-Win64-Shipping", {} },
+	// Persona 5: Strikers
+	{ L"game.exe", {} }
 };
 
 bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
@@ -63,7 +65,7 @@ bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
 		CreateDefault(configPath);
 	}
 
-	UINT enabled = GetPrivateProfileInt(processName, L"Enabled", UINT_MAX, configPath);
+	UINT enabled = GetPrivateProfileIntW(processName, L"Enabled", UINT_MAX, configPath);
 	if (enabled == 0)
 		return false;
 
@@ -78,18 +80,21 @@ bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
 		itr->second.Save(itr->first.c_str(), configPath);
 	}
 
-	UseBackgroundRendering = GetPrivateProfileInt(processName, L"UseBackgroundRendering", 1, configPath) != 0;
-	UseBackgroundAudio = GetPrivateProfileInt(processName, L"UseBackgroundAudio", 0, configPath) != 0;
-	UseAppAudioDevice = GetPrivateProfileInt(processName, L"UseAppAudioDevice", 1, configPath) != 0;
-	UseUnclippedCursor = GetPrivateProfileInt(processName, L"UseUnclippedCursor", 1, configPath) != 0;
+	LogLevel = GetPrivateProfileIntW(processName, L"LogLevel", LOGLEVEL_INFO, configPath) != 0;
+	WindowHooks = GetPrivateProfileIntW(processName, L"WindowHooks", 1, configPath) != 0;
 
-	TalesOfVesperia_MicroStutterFix = GetPrivateProfileInt(processName, L"TalesOfVesperia.MicroStutterFix", 0, configPath) != 0;
+	UseBackgroundRendering = GetPrivateProfileIntW(processName, L"UseBackgroundRendering", 1, configPath) != 0;
+	UseBackgroundAudio = GetPrivateProfileIntW(processName, L"UseBackgroundAudio", 0, configPath) != 0;
+	UseAppAudioDevice = GetPrivateProfileIntW(processName, L"UseAppAudioDevice", 1, configPath) != 0;
+	UseUnclippedCursor = GetPrivateProfileIntW(processName, L"UseUnclippedCursor", 1, configPath) != 0;
 
-	HookDirectInput = GetPrivateProfileInt(processName, L"HookDirectInput", 1, configPath) != 0;
-	HookDirectSound = GetPrivateProfileInt(processName, L"HookDirectSound", 1, configPath) != 0;
+	TalesOfVesperia_MicroStutterFix = GetPrivateProfileIntW(processName, L"TalesOfVesperia.MicroStutterFix", 0, configPath) != 0;
 
-	DisableMouse = GetPrivateProfileInt(processName, L"DisableMouse", 1, configPath) != 0;
-	DisableKeyboard = GetPrivateProfileInt(processName, L"DisableKeyboard", 1, configPath) != 0;
+	HookDirectInput = GetPrivateProfileIntW(processName, L"HookDirectInput", 1, configPath) != 0;
+	HookDirectSound = GetPrivateProfileIntW(processName, L"HookDirectSound", 1, configPath) != 0;
+
+	DisableMouse = GetPrivateProfileIntW(processName, L"DisableMouse", 1, configPath) != 0;
+	DisableKeyboard = GetPrivateProfileIntW(processName, L"DisableKeyboard", 1, configPath) != 0;
 
 	return true;
 }
@@ -98,34 +103,40 @@ void Settings::Save(const wchar_t* processName, const wchar_t* configPath) const
 {
 	static const Settings DefaultSettings;
 
-	WritePrivateProfileString(processName, L"Enabled", L"1", configPath);
+	WritePrivateProfileStringW(processName, L"Enabled", L"1", configPath);
+
+	if (LogLevel != DefaultSettings.LogLevel)
+	{
+		auto logLevel = std::to_wstring(LogLevel);
+		WritePrivateProfileStringW(processName, L"LogLevel", logLevel.c_str(), configPath);
+	}
 
 	if (UseBackgroundRendering != DefaultSettings.UseBackgroundRendering)
-		WritePrivateProfileString(processName, L"UseBackgroundRendering", UseBackgroundRendering ? L"1" : L"0", configPath);
+		WritePrivateProfileStringW(processName, L"UseBackgroundRendering", UseBackgroundRendering ? L"1" : L"0", configPath);
 
 	if (UseBackgroundAudio != DefaultSettings.UseBackgroundAudio)
-		WritePrivateProfileString(processName, L"UseBackgroundAudio", UseBackgroundAudio ? L"1" : L"0", configPath);
+		WritePrivateProfileStringW(processName, L"UseBackgroundAudio", UseBackgroundAudio ? L"1" : L"0", configPath);
 
 	if (UseAppAudioDevice != DefaultSettings.UseAppAudioDevice)
-		WritePrivateProfileString(processName, L"UseAppAudioDevice", UseAppAudioDevice ? L"1" : L"0", configPath);
+		WritePrivateProfileStringW(processName, L"UseAppAudioDevice", UseAppAudioDevice ? L"1" : L"0", configPath);
 
 	if (UseUnclippedCursor != DefaultSettings.UseUnclippedCursor)
-		WritePrivateProfileString(processName, L"UseUnclippedCursor", UseUnclippedCursor ? L"1" : L"0", configPath);
+		WritePrivateProfileStringW(processName, L"UseUnclippedCursor", UseUnclippedCursor ? L"1" : L"0", configPath);
 
 	if (TalesOfVesperia_MicroStutterFix != DefaultSettings.TalesOfVesperia_MicroStutterFix)
-		WritePrivateProfileString(processName, L"TalesOfVesperia.MicroStutterFix", TalesOfVesperia_MicroStutterFix ? L"1" : L"0", configPath);
+		WritePrivateProfileStringW(processName, L"TalesOfVesperia.MicroStutterFix", TalesOfVesperia_MicroStutterFix ? L"1" : L"0", configPath);
 
 	if (HookDirectInput != DefaultSettings.HookDirectInput)
-		WritePrivateProfileString(processName, L"HookDirectInput", HookDirectInput ? L"1" : L"0", configPath);
+		WritePrivateProfileStringW(processName, L"HookDirectInput", HookDirectInput ? L"1" : L"0", configPath);
 
 	if (HookDirectSound != DefaultSettings.HookDirectSound)
-		WritePrivateProfileString(processName, L"HookDirectSound", HookDirectSound ? L"1" : L"0", configPath);
+		WritePrivateProfileStringW(processName, L"HookDirectSound", HookDirectSound ? L"1" : L"0", configPath);
 
 	if (DisableMouse != DefaultSettings.DisableMouse)
-		WritePrivateProfileString(processName, L"DisableMouse", DisableMouse ? L"1" : L"0", configPath);
+		WritePrivateProfileStringW(processName, L"DisableMouse", DisableMouse ? L"1" : L"0", configPath);
 
 	if (DisableKeyboard != DefaultSettings.DisableKeyboard)
-		WritePrivateProfileString(processName, L"DisableKeyboard", DisableKeyboard ? L"1" : L"0", configPath);
+		WritePrivateProfileStringW(processName, L"DisableKeyboard", DisableKeyboard ? L"1" : L"0", configPath);
 }
 
 const std::wstring& Settings::GetDefaultConfigPath()
