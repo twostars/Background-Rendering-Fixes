@@ -75,7 +75,25 @@ HRESULT My_IDirectInputDevice8A::Unacquire()
 
 HRESULT My_IDirectInputDevice8A::GetDeviceState(DWORD cbData, LPVOID lpvData)
 {
-	return m_original->GetDeviceState(cbData, lpvData);
+	HRESULT hr = m_original->GetDeviceState(cbData, lpvData);
+	if (SUCCEEDED(hr))
+	{
+		if ((g_settings.UseBackgroundRendering && !g_applicationInFocus)
+			|| (g_settings.DisableKeyboard && m_deviceType == INPUT_DEVICE_KEYBOARD)
+			|| (g_settings.DisableMouse && m_deviceType == INPUT_DEVICE_MOUSE))
+		{
+			if (m_deviceType == INPUT_DEVICE_KEYBOARD
+				|| m_deviceType == INPUT_DEVICE_MOUSE)
+			{
+				if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
+					WriteLog(L"My_IDirectInputDevice8A::GetDeviceState(): resetting state");
+
+				memset(lpvData, 0, cbData);
+			}
+		}
+	}
+
+	return hr;
 }
 
 HRESULT My_IDirectInputDevice8A::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags)
@@ -89,7 +107,12 @@ HRESULT My_IDirectInputDevice8A::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJ
 		{
 			if (m_deviceType == INPUT_DEVICE_KEYBOARD
 				|| m_deviceType == INPUT_DEVICE_MOUSE)
+			{
+				if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
+					WriteLog(L"My_IDirectInputDevice8A::GetDeviceData(): resetting state");
+
 				memset(rgdod, 0, cbObjectData);
+			}
 		}
 	}
 
@@ -274,7 +297,25 @@ HRESULT My_IDirectInputDevice8W::Unacquire()
 
 HRESULT My_IDirectInputDevice8W::GetDeviceState(DWORD cbData, LPVOID lpvData)
 {
-	return m_original->GetDeviceState(cbData, lpvData);
+	HRESULT hr = m_original->GetDeviceState(cbData, lpvData);
+	if (SUCCEEDED(hr))
+	{
+		if ((g_settings.UseBackgroundRendering && !g_applicationInFocus)
+			|| (g_settings.DisableKeyboard && m_deviceType == INPUT_DEVICE_KEYBOARD)
+			|| (g_settings.DisableMouse && m_deviceType == INPUT_DEVICE_MOUSE))
+		{
+			if (m_deviceType == INPUT_DEVICE_KEYBOARD
+				|| m_deviceType == INPUT_DEVICE_MOUSE)
+			{
+				if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
+					WriteLog(L"My_IDirectInputDevice8W::GetDeviceState(): resetting state");
+
+				memset(lpvData, 0, cbData);
+			}
+		}
+	}
+
+	return hr;
 }
 
 HRESULT My_IDirectInputDevice8W::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags)
@@ -288,7 +329,12 @@ HRESULT My_IDirectInputDevice8W::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJ
 		{
 			if (m_deviceType == INPUT_DEVICE_KEYBOARD
 				|| m_deviceType == INPUT_DEVICE_MOUSE)
+			{
+				if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
+					WriteLog(L"My_IDirectInputDevice8W::GetDeviceData(): resetting state");
+
 				memset(rgdod, 0, cbObjectData);
+			}
 		}
 	}
 

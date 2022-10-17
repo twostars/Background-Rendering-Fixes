@@ -93,8 +93,8 @@ bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
 	HookDirectInput = GetPrivateProfileIntW(processName, L"HookDirectInput", 1, configPath) != 0;
 	HookDirectSound = GetPrivateProfileIntW(processName, L"HookDirectSound", 1, configPath) != 0;
 
-	DisableMouse = GetPrivateProfileIntW(processName, L"DisableMouse", 1, configPath) != 0;
-	DisableKeyboard = GetPrivateProfileIntW(processName, L"DisableKeyboard", 1, configPath) != 0;
+	DisableMouse = GetPrivateProfileIntW(processName, L"DisableMouse", 0, configPath) != 0;
+	DisableKeyboard = GetPrivateProfileIntW(processName, L"DisableKeyboard", 0, configPath) != 0;
 
 	return true;
 }

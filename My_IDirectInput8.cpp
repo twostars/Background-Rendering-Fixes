@@ -32,6 +32,14 @@ ULONG My_IDirectInput8A::Release()
 
 HRESULT My_IDirectInput8A::CreateDevice(REFGUID rguid, LPDIRECTINPUTDEVICE8A* lplpDirectInputDevice, LPUNKNOWN pUnkOuter)
 {
+	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
+	{
+		WriteLog(L"My_IDirectInput8A::CreateDevice({%08lX-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X})\n", 
+			rguid.Data1, rguid.Data2, rguid.Data3, 
+			rguid.Data4[0], rguid.Data4[1], rguid.Data4[2], rguid.Data4[3],
+			rguid.Data4[4], rguid.Data4[5], rguid.Data4[6], rguid.Data4[7]);
+	}
+
 	HRESULT hr = m_original->CreateDevice(rguid, lplpDirectInputDevice, pUnkOuter);
 	if (SUCCEEDED(hr))
 	{
@@ -116,6 +124,14 @@ ULONG My_IDirectInput8W::Release()
 
 HRESULT My_IDirectInput8W::CreateDevice(REFGUID rguid, LPDIRECTINPUTDEVICE8W* lplpDirectInputDevice, LPUNKNOWN pUnkOuter)
 {
+	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
+	{
+		WriteLog(L"My_IDirectInput8W::CreateDevice({%08lX-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X})\n", 
+			rguid.Data1, rguid.Data2, rguid.Data3, 
+			rguid.Data4[0], rguid.Data4[1], rguid.Data4[2], rguid.Data4[3],
+			rguid.Data4[4], rguid.Data4[5], rguid.Data4[6], rguid.Data4[7]);
+	}
+
 	HRESULT hr = m_original->CreateDevice(rguid, lplpDirectInputDevice, pUnkOuter);
 	if (SUCCEEDED(hr))
 	{
