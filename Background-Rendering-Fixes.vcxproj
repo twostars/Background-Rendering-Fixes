@@ -57,6 +57,7 @@
     <ClInclude Include="hooks.h" />
     <ClInclude Include="IXAudio2.h" />
     <ClInclude Include="IXAudio20.h" />
+    <ClInclude Include="LogLevel.h" />
     <ClInclude Include="My_IDirectInput8.h" />
     <ClInclude Include="My_IDirectInputDevice8.h" />
     <ClInclude Include="My_IDirectSound.h" />

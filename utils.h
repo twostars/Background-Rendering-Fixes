@@ -16,5 +16,5 @@ bool GetDefaultAudioEndpointPathForThisProcess(std::wstring* mmdevPath);
 bool GetDefaultAudioEndpointIDForProcess(const std::wstring& processPath, std::wstring* deviceID);
 bool GetDefaultAudioEndpointIDForThisProcess(std::wstring* deviceID);
 
-void WriteLog(const wchar_t* fmt, ...);
-void WriteLogEx(const wchar_t* fmt, va_list args);
+void WriteLog(int logLevel, const wchar_t* fmt, ...);
+void WriteLogEx(int logLevel, const wchar_t* fmt, va_list args);

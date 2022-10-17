@@ -25,8 +25,12 @@ LRESULT CALLBACK WndProcA(
 	_In_ LPARAM lParam
 )
 {
-	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
-		WriteLog(L"WndProcA(%X, %X, %X, %X)\n", hwnd, uMsg, wParam, lParam);
+	WriteLog(LOGLEVEL_DEBUG,
+		L"WndProcA(%X, %X, %X, %X)\n",
+		hwnd,
+		uMsg,
+		wParam,
+		lParam);
 
 	std::lock_guard<std::recursive_mutex> lock(g_lock);
 	auto itr = g_windowData.find(hwnd);
@@ -48,8 +52,12 @@ LRESULT CALLBACK WndProcW(
 	_In_ LPARAM lParam
 )
 {
-	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
-		WriteLog(L"WndProcW(%X, %X, %X, %X)\n", hwnd, uMsg, wParam, lParam);
+	WriteLog(LOGLEVEL_DEBUG,
+		L"WndProcW(%X, %X, %X, %X)\n",
+		hwnd,
+		uMsg,
+		wParam,
+		lParam);
 
 	std::lock_guard<std::recursive_mutex> lock(g_lock);
 	auto itr = g_windowData.find(hwnd);

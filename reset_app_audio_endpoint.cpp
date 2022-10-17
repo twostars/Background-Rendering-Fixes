@@ -86,8 +86,8 @@ DWORD WINAPI ResetAppAudioEndpointThread(LPVOID lpParam)
 
 	if (FAILED(CoInitialize(nullptr)))
 	{
-		if (g_settings.LogLevel <= LOGLEVEL_CRITICAL)
-			WriteLog(L"ResetAppAudioEndpointThread(): CoInitialize() failed.\n");
+		WriteLog(LOGLEVEL_CRITICAL,
+			L"ResetAppAudioEndpointThread(): CoInitialize() failed.\n");
 
 		s_threadCreated = false;
 		return 1;
@@ -97,8 +97,8 @@ DWORD WINAPI ResetAppAudioEndpointThread(LPVOID lpParam)
 	IAudioPolicyConfig* config = nullptr;
 	if (FAILED(CombaseFunctions::get()->RoGetActivationFactory(classId.get(), IID_IAudioPolicyConfig, (void**)&config)))
 	{
-		if (g_settings.LogLevel <= LOGLEVEL_CRITICAL)
-			WriteLog(L"ResetAppAudioEndpointThread(): RoGetActivationFactory() failed\n");
+		WriteLog(LOGLEVEL_CRITICAL,
+			L"ResetAppAudioEndpointThread(): RoGetActivationFactory() failed\n");
 
 		CoUninitialize();
 		s_threadCreated = false;
@@ -109,8 +109,8 @@ DWORD WINAPI ResetAppAudioEndpointThread(LPVOID lpParam)
 	HRESULT hr = config->GetPersistedDefaultAudioEndpoint(g_processId, eRender, eMultimedia, &deviceId_);
 	if (FAILED(hr))
 	{
-		if (g_settings.LogLevel <= LOGLEVEL_CRITICAL)
-			WriteLog(L"ResetAppAudioEndpointThread(): GetPersistedDefaultAudioEndpoint() failed (pid=%X). hr=%X\n", g_processId, hr);
+		WriteLog(LOGLEVEL_CRITICAL,
+			L"ResetAppAudioEndpointThread(): GetPersistedDefaultAudioEndpoint() failed (pid=%X). hr=%X\n", g_processId, hr);
 
 		CoUninitialize();
 		s_threadCreated = false;

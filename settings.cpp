@@ -80,7 +80,7 @@ bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
 		itr->second.Save(itr->first.c_str(), configPath);
 	}
 
-	LogLevel = GetPrivateProfileIntW(processName, L"LogLevel", LOGLEVEL_INFO, configPath) != 0;
+	LogLevel = GetPrivateProfileIntW(processName, L"LogLevel", LOGLEVEL_INFO, configPath);
 	WindowHooks = GetPrivateProfileIntW(processName, L"WindowHooks", 1, configPath) != 0;
 
 	UseBackgroundRendering = GetPrivateProfileIntW(processName, L"UseBackgroundRendering", 1, configPath) != 0;

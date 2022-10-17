@@ -111,6 +111,7 @@
     </ClInclude>
     <ClInclude Include="CombaseFunctions.h" />
     <ClInclude Include="ScopedHString.h" />
+    <ClInclude Include="LogLevel.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="DirectSound">

@@ -1,16 +1,10 @@
 #pragma once
 
-enum
-{
-	LOGLEVEL_NONE		= 0,
-	LOGLEVEL_CRITICAL	= 1,
-	LOGLEVEL_INFO		= 10,
-	LOGLEVEL_DEBUG		= 20
-};
+#include "LogLevel.h"
 
 struct Settings
 {
-	uint32_t LogLevel = LOGLEVEL_INFO;
+	int LogLevel = LOGLEVEL_INFO;
 
 	bool WindowHooks = true;
 

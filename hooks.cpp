@@ -394,8 +394,11 @@ LONG_PTR WINAPI hooked_SetWindowLongPtrA(
 	LONG_PTR dwNewLong
 )
 {
-	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
-		WriteLog(L"SetWindowLongPtrA(%X, %d, %X)\n", hWnd, nIndex, dwNewLong);
+	WriteLog(LOGLEVEL_DEBUG,
+		L"SetWindowLongPtrA(%X, %d, %X)\n",
+		hWnd,
+		nIndex,
+		dwNewLong);
 
 	if (nIndex == GWLP_WNDPROC
 		&& dwNewLong != (LONG_PTR)WndProcA)
@@ -423,8 +426,11 @@ LONG_PTR WINAPI hooked_SetWindowLongPtrW(
 	LONG_PTR dwNewLong
 )
 {
-	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
-		WriteLog(L"SetWindowLongPtrW(%X, %d, %X)\n", hWnd, nIndex, dwNewLong);
+	WriteLog(LOGLEVEL_DEBUG,
+		L"SetWindowLongPtrW(%X, %d, %X)\n",
+		hWnd,
+		nIndex,
+		dwNewLong);
 
 	if (nIndex == GWLP_WNDPROC
 		&& dwNewLong != (LONG_PTR)WndProcW)
@@ -451,8 +457,11 @@ LONG_PTR WINAPI hooked_GetWindowLongPtrA(
 	int  nIndex
 )
 {
-	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
-		WriteLog(L"GetWindowLongPtrA(%X, %d)\n", hWnd, nIndex);
+	WriteLog(
+		LOGLEVEL_DEBUG,
+		L"GetWindowLongPtrA(%X, %d)\n",
+		hWnd,
+		nIndex);
 
 	if (nIndex == GWLP_WNDPROC)
 	{
@@ -470,8 +479,11 @@ LONG_PTR WINAPI hooked_GetWindowLongPtrW(
 	int  nIndex
 )
 {
-	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
-		WriteLog(L"GetWindowLongPtrW(%X, %d)\n", hWnd, nIndex);
+	WriteLog(
+		LOGLEVEL_DEBUG,
+		L"GetWindowLongPtrW(%X, %d)\n",
+		hWnd,
+		nIndex);
 
 	if (nIndex == GWLP_WNDPROC)
 	{
@@ -499,8 +511,12 @@ HWND WINAPI hooked_CreateWindowExA(
 	LPVOID     lpParam
 )
 {
-	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
-		WriteLog(L"CreateWindowExA(%X, %hs, %hs, %X)\n", dwExStyle, lpClassName, lpWindowName, dwStyle);
+	WriteLog(LOGLEVEL_DEBUG,
+		L"CreateWindowExA(%X, %hs, %hs, %X)\n",
+		dwExStyle,
+		lpClassName,
+		lpWindowName,
+		dwStyle);
 
 	HWND hWnd = Real_CreateWindowExA(
 		dwExStyle,
@@ -517,8 +533,13 @@ HWND WINAPI hooked_CreateWindowExA(
 		lpParam
 	);
 
-	if (g_settings.LogLevel <= LOGLEVEL_INFO)
-		WriteLog(L"CreateWindowExA(%X, %hs, %hs, %X) = %X\n", dwExStyle, lpClassName, lpWindowName, dwStyle, hWnd);
+	WriteLog(LOGLEVEL_INFO,
+		L"CreateWindowExA(%X, %hs, %hs, %X) = %X\n",
+		dwExStyle,
+		lpClassName,
+		lpWindowName,
+		dwStyle,
+		hWnd);
 
 	if (hWnd != nullptr)
 	{
@@ -550,8 +571,12 @@ HWND WINAPI hooked_CreateWindowExW(
 	LPVOID     lpParam
 )
 {
-	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
-		WriteLog(L"CreateWindowExW(%X, %ls, %ls, %X)\n", dwExStyle, lpClassName, lpWindowName, dwStyle);
+	WriteLog(LOGLEVEL_DEBUG,
+		L"CreateWindowExW(%X, %ls, %ls, %X)\n",
+		dwExStyle,
+		lpClassName,
+		lpWindowName,
+		dwStyle);
 
 	HWND hWnd = Real_CreateWindowExW(
 		dwExStyle,
@@ -568,8 +593,13 @@ HWND WINAPI hooked_CreateWindowExW(
 		lpParam
 	);
 
-	if (g_settings.LogLevel <= LOGLEVEL_INFO)
-		WriteLog(L"CreateWindowExW(%X, %ls, %ls, %X) = %X\n", dwExStyle, lpClassName, lpWindowName, dwStyle, hWnd);
+	WriteLog(LOGLEVEL_INFO,
+		L"CreateWindowExW(%X, %ls, %ls, %X) = %X\n",
+		dwExStyle,
+		lpClassName,
+		lpWindowName,
+		dwStyle,
+		hWnd);
 
 	if (hWnd != nullptr)
 	{
@@ -590,8 +620,9 @@ BOOL WINAPI hooked_DestroyWindow(
 	HWND hWnd
 )
 {
-	if (g_settings.LogLevel <= LOGLEVEL_INFO)
-		WriteLog(L"DestroyWindow(%X)\n", hWnd);
+	WriteLog(LOGLEVEL_INFO,
+		L"DestroyWindow(%X)\n",
+		hWnd);
 
 	BOOL r = Real_DestroyWindow(hWnd);
 
@@ -808,8 +839,8 @@ HRESULT WINAPI hooked_DirectSoundCreate(
 	LPDIRECTSOUND* ppDS,
 	LPUNKNOWN pUnkOuter)
 {
-	if (g_settings.LogLevel <= LOGLEVEL_INFO)
-		WriteLog(L"DirectSoundCreate()\n");
+	WriteLog(LOGLEVEL_INFO,
+		L"DirectSoundCreate()\n");
 
 	HRESULT hr = Real_DirectSoundCreate(pcGuidDevice, ppDS, pUnkOuter);
 	if (SUCCEEDED(hr) && ppDS != nullptr)
@@ -822,8 +853,8 @@ HRESULT WINAPI hooked_DirectSoundCreate8(
 	LPDIRECTSOUND8* ppDS,
 	LPUNKNOWN pUnkOuter)
 {
-	if (g_settings.LogLevel <= LOGLEVEL_INFO)
-		WriteLog(L"DirectSoundCreate8()\n");
+	WriteLog(LOGLEVEL_INFO,
+		L"DirectSoundCreate8()\n");
 
 	HRESULT hr = Real_DirectSoundCreate8(pcGuidDevice, ppDS, pUnkOuter);
 	if (SUCCEEDED(hr) && ppDS != nullptr)
@@ -838,8 +869,8 @@ HRESULT WINAPI hooked_DirectInput8Create(
 	LPVOID* ppvOut,
 	LPUNKNOWN punkOuter)
 {
-	if (g_settings.LogLevel <= LOGLEVEL_INFO)
-		WriteLog(L"DirectInput8Create()\n");
+	WriteLog(LOGLEVEL_INFO,
+		L"DirectInput8Create()\n");
 
 	HRESULT hr = Real_DirectInput8Create(hinst, dwVersion, riidltf, ppvOut, punkOuter);
 	if (SUCCEEDED(hr) && ppvOut != nullptr)
@@ -865,8 +896,8 @@ HRESULT WINAPI hooked_D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter,
 	_Out_opt_                            D3D_FEATURE_LEVEL* pFeatureLevel,
 	_Out_opt_                            ID3D11DeviceContext** ppImmediateContext)
 {
-	if (g_settings.LogLevel <= LOGLEVEL_INFO)
-		WriteLog(L"D3D11CreateDeviceAndSwapChain()\n");
+	WriteLog(LOGLEVEL_INFO,
+		L"D3D11CreateDeviceAndSwapChain()\n");
 
 	g_renderThreadId = g_tls.ThreadID;
 
