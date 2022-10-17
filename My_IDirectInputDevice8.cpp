@@ -83,8 +83,9 @@ HRESULT My_IDirectInputDevice8A::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJ
 	HRESULT hr = m_original->GetDeviceData(cbObjectData, rgdod, pdwInOut, dwFlags);
 	if (SUCCEEDED(hr))
 	{
-		if (g_settings.UseBackgroundRendering /* needed to determine state */
-			&& !g_applicationInFocus)
+		if ((g_settings.UseBackgroundRendering && !g_applicationInFocus)
+			|| (g_settings.DisableKeyboard && m_deviceType == INPUT_DEVICE_KEYBOARD)
+			|| (g_settings.DisableMouse && m_deviceType == INPUT_DEVICE_MOUSE))
 		{
 			if (m_deviceType == INPUT_DEVICE_KEYBOARD
 				|| m_deviceType == INPUT_DEVICE_MOUSE)
@@ -281,8 +282,9 @@ HRESULT My_IDirectInputDevice8W::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJ
 	HRESULT hr = m_original->GetDeviceData(cbObjectData, rgdod, pdwInOut, dwFlags);
 	if (SUCCEEDED(hr))
 	{
-		if (g_settings.UseBackgroundRendering /* needed to determine state */
-			&& !g_applicationInFocus)
+		if ((g_settings.UseBackgroundRendering && !g_applicationInFocus)
+			|| (g_settings.DisableKeyboard && m_deviceType == INPUT_DEVICE_KEYBOARD)
+			|| (g_settings.DisableMouse && m_deviceType == INPUT_DEVICE_MOUSE))
 		{
 			if (m_deviceType == INPUT_DEVICE_KEYBOARD
 				|| m_deviceType == INPUT_DEVICE_MOUSE)
