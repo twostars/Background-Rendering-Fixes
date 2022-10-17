@@ -25,6 +25,9 @@ LRESULT CALLBACK WndProcA(
 	_In_ LPARAM lParam
 )
 {
+	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
+		WriteLog(L"WndProcA(%X, %X, %X, %X)\n", hwnd, uMsg, wParam, lParam);
+
 	std::lock_guard<std::recursive_mutex> lock(g_lock);
 	auto itr = g_windowData.find(hwnd);
 	if (itr == g_windowData.end())
@@ -45,6 +48,9 @@ LRESULT CALLBACK WndProcW(
 	_In_ LPARAM lParam
 )
 {
+	if (g_settings.LogLevel <= LOGLEVEL_DEBUG)
+		WriteLog(L"WndProcW(%X, %X, %X, %X)\n", hwnd, uMsg, wParam, lParam);
+
 	std::lock_guard<std::recursive_mutex> lock(g_lock);
 	auto itr = g_windowData.find(hwnd);
 	if (itr == g_windowData.end())
@@ -117,8 +123,8 @@ bool WindowProcImpl(
 
 	case WM_INPUT:
 	{
-		if (g_settings.UseBackgroundRendering
-			&& !g_applicationInFocus)
+		if ((g_settings.UseBackgroundRendering && !g_applicationInFocus)
+			|| g_settings.DisableMouse)
 		{
 			UINT dwSize = sizeof(RAWINPUT);
 			BYTE lpb[sizeof(RAWINPUT)];
@@ -132,8 +138,12 @@ bool WindowProcImpl(
 	} break;
 
 	default:
-		if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
+		if (uMsg >= WM_MOUSEFIRST
+			&& uMsg <= WM_MOUSELAST)
 		{
+			if (g_settings.DisableMouse)
+				return false;
+
 			if (g_settings.UseBackgroundRendering
 				&& !g_applicationInFocus)
 				return false;
