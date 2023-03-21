@@ -7,6 +7,8 @@
 #define INITGUID
 #include <guiddef.h>
 
+extern DWORD g_processId;
+
 // {2a59116d-6c4f-45e0-a74f-707e3fef9258}
 DEFINE_GUID(IID_IAudioPolicyConfig, 0x2a59116d, 0x6c4f, 0x45e0, 0xa7, 0x4f, 0x70, 0x7e, 0x3f, 0xef, 0x92, 0x58);
 

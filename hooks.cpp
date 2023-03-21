@@ -10,6 +10,13 @@
 
 extern bool g_loaded;
 
+extern DWORD g_processId;
+extern std::map<HWND, std::shared_ptr<WindowData>> g_windowData;
+extern std::atomic<bool> g_applicationInFocus;
+extern std::atomic<HWND> g_applicationWindow;
+extern std::atomic<DWORD> g_renderThreadId;
+extern std::recursive_mutex g_lock;
+
 struct IDXGIAdapter;
 struct DXGI_SWAP_CHAIN_DESC;
 struct IDXGISwapChain;
@@ -312,6 +319,15 @@ void hooked_SDL_WarpMouseInWindow(
 	int y
 );
 
+static constexpr bool IsAtom(const void* address)
+{
+	uint16_t hi = HIWORD(address);
+	uint16_t lo = LOWORD(address);
+	return (hi == 0
+		&& lo >= 1
+		&& lo <= 0xFFFF);
+}
+
 void InstallHooks()
 {
 	if (g_settings.WindowHooks)
@@ -405,10 +421,16 @@ LONG_PTR WINAPI hooked_SetWindowLongPtrA(
 	{
 		std::lock_guard<std::recursive_mutex> lock(g_lock);
 		auto itr = g_windowData.find(hWnd);
-		if (itr == g_windowData.end()
-			|| itr->second.OriginalProcA == nullptr)
+		if (itr == g_windowData.end())
 		{
-			g_windowData[hWnd].OriginalProcA = (WNDPROC)dwNewLong;
+			auto windowData = std::make_shared<WindowData>();
+			windowData->OriginalProcA = (WNDPROC)dwNewLong;
+			dwNewLong = (LONG_PTR)&WndProcA;
+			g_windowData.insert(std::make_pair(hWnd, windowData));
+		}
+		else if (itr->second->OriginalProcA == nullptr)
+		{
+			itr->second->OriginalProcA = (WNDPROC)dwNewLong;
 			dwNewLong = (LONG_PTR)&WndProcA;
 		}
 		else
@@ -437,10 +459,16 @@ LONG_PTR WINAPI hooked_SetWindowLongPtrW(
 	{
 		std::lock_guard<std::recursive_mutex> lock(g_lock);
 		auto itr = g_windowData.find(hWnd);
-		if (itr == g_windowData.end()
-			|| itr->second.OriginalProcW == nullptr)
+		if (itr == g_windowData.end())
 		{
-			g_windowData[hWnd].OriginalProcW = (WNDPROC)dwNewLong;
+			auto windowData = std::make_shared<WindowData>();
+			windowData->OriginalProcW = (WNDPROC)dwNewLong;
+			dwNewLong = (LONG_PTR)&WndProcW;
+			g_windowData.insert(std::make_pair(hWnd, windowData));
+		}
+		else if (itr->second->OriginalProcW == nullptr)
+		{
+			itr->second->OriginalProcW = (WNDPROC)dwNewLong;
 			dwNewLong = (LONG_PTR)&WndProcW;
 		}
 		else
@@ -468,7 +496,7 @@ LONG_PTR WINAPI hooked_GetWindowLongPtrA(
 		std::lock_guard<std::recursive_mutex> lock(g_lock);
 		auto itr = g_windowData.find(hWnd);
 		if (itr != g_windowData.end())
-			return (LONG_PTR)itr->second.OriginalProcA;
+			return (LONG_PTR)itr->second->OriginalProcA;
 	}
 
 	return Real_GetWindowLongPtrA(hWnd, nIndex);
@@ -490,7 +518,7 @@ LONG_PTR WINAPI hooked_GetWindowLongPtrW(
 		std::lock_guard<std::recursive_mutex> lock(g_lock);
 		auto itr = g_windowData.find(hWnd);
 		if (itr != g_windowData.end())
-			return (LONG_PTR)itr->second.OriginalProcW;
+			return (LONG_PTR)itr->second->OriginalProcW;
 	}
 
 	return Real_GetWindowLongPtrW(hWnd, nIndex);
@@ -514,7 +542,7 @@ HWND WINAPI hooked_CreateWindowExA(
 	WriteLog(LOGLEVEL_DEBUG,
 		L"CreateWindowExA(%X, %hs, %hs, %X)\n",
 		dwExStyle,
-		lpClassName,
+		IsAtom(lpClassName) ? "<ATOM>" : lpClassName,
 		lpWindowName,
 		dwStyle);
 
@@ -536,7 +564,7 @@ HWND WINAPI hooked_CreateWindowExA(
 	WriteLog(LOGLEVEL_INFO,
 		L"CreateWindowExA(%X, %hs, %hs, %X) = %X\n",
 		dwExStyle,
-		lpClassName,
+		IsAtom(lpClassName) ? "<ATOM>" : lpClassName,
 		lpWindowName,
 		dwStyle,
 		hWnd);
@@ -548,7 +576,18 @@ HWND WINAPI hooked_CreateWindowExA(
 			&& originalProc != WndProcA)
 		{
 			std::lock_guard<std::recursive_mutex> lock(g_lock);
-			g_windowData[hWnd].OriginalProcA = originalProc;
+			auto itr = g_windowData.find(hWnd);
+			if (itr == g_windowData.end())
+			{
+				auto windowData = std::make_shared<WindowData>();
+				windowData->OriginalProcA = originalProc;
+				g_windowData.insert(std::make_pair(hWnd, windowData));
+			}
+			else
+			{
+				itr->second->OriginalProcA = originalProc;
+			}
+
 			Real_SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR)&WndProcA);
 		}
 	}
@@ -574,7 +613,7 @@ HWND WINAPI hooked_CreateWindowExW(
 	WriteLog(LOGLEVEL_DEBUG,
 		L"CreateWindowExW(%X, %ls, %ls, %X)\n",
 		dwExStyle,
-		lpClassName,
+		IsAtom(lpClassName) ? L"<ATOM>" : lpClassName,
 		lpWindowName,
 		dwStyle);
 
@@ -596,7 +635,7 @@ HWND WINAPI hooked_CreateWindowExW(
 	WriteLog(LOGLEVEL_INFO,
 		L"CreateWindowExW(%X, %ls, %ls, %X) = %X\n",
 		dwExStyle,
-		lpClassName,
+		IsAtom(lpClassName) ? L"<ATOM>" : lpClassName,
 		lpWindowName,
 		dwStyle,
 		hWnd);
@@ -608,7 +647,18 @@ HWND WINAPI hooked_CreateWindowExW(
 			&& originalProc != WndProcW)
 		{
 			std::lock_guard<std::recursive_mutex> lock(g_lock);
-			g_windowData[hWnd].OriginalProcW = originalProc;
+			auto itr = g_windowData.find(hWnd);
+			if (itr == g_windowData.end())
+			{
+				auto windowData = std::make_shared<WindowData>();
+				windowData->OriginalProcW = originalProc;
+				g_windowData.insert(std::make_pair(hWnd, windowData));
+			}
+			else
+			{
+				itr->second->OriginalProcW = originalProc;
+			}
+
 			Real_SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)&WndProcW);
 		}
 	}
@@ -791,6 +841,7 @@ void WINAPI hooked_RaiseException(
 			if (dwThreadId == -1)
 				dwThreadId = g_tls.ThreadID;
 
+			WriteLog(LOGLEVEL_DEBUG, L"Thread ID: %X, thread name: %hs\n", dwThreadId, info->szName);
 			g_tls.ThreadName = info->szName;
 		}
 	}

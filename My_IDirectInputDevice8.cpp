@@ -2,6 +2,8 @@
 #include "My_IDirectInputDevice8.h"
 #include "My_IDirectInput8.h"
 
+extern std::atomic<bool> g_applicationInFocus;
+
 My_IDirectInputDevice8A::My_IDirectInputDevice8A(REFGUID guid, IDirectInputDevice8A* original, My_IDirectInput8A* di)
 	: m_guid(guid), m_original(original), m_di(di)
 {

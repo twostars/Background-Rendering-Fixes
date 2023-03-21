@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "tls.h"
 
-std::map<HWND, WindowData> g_windowData;
+std::map<HWND, std::shared_ptr<WindowData>> g_windowData;
 std::atomic<bool> g_applicationInFocus = true;
 std::atomic<HWND> g_applicationWindow = nullptr;
 
@@ -37,12 +37,12 @@ LRESULT CALLBACK WndProcA(
 	if (itr == g_windowData.end())
 		return DefWindowProcA(hwnd, uMsg, wParam, lParam);
 
-	auto& windowData = itr->second;
-	if (!WindowProcImpl(hwnd, uMsg, wParam, lParam, windowData))
+	auto windowData = itr->second;
+	if (!WindowProcImpl(hwnd, uMsg, wParam, lParam, *windowData))
 		return 0;
 
 	// Restore the original call.
-	return CallWindowProcA(windowData.OriginalProcA, hwnd, uMsg, wParam, lParam);
+	return CallWindowProcA(windowData->OriginalProcA, hwnd, uMsg, wParam, lParam);
 }
 
 LRESULT CALLBACK WndProcW(
@@ -64,12 +64,12 @@ LRESULT CALLBACK WndProcW(
 	if (itr == g_windowData.end())
 		return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 
-	auto& windowData = itr->second;
-	if (!WindowProcImpl(hwnd, uMsg, wParam, lParam, windowData))
+	auto windowData = itr->second;
+	if (!WindowProcImpl(hwnd, uMsg, wParam, lParam, *windowData))
 		return 0;
 
 	// Restore the original call.
-	return CallWindowProcW(windowData.OriginalProcW, hwnd, uMsg, wParam, lParam);
+	return CallWindowProcW(windowData->OriginalProcW, hwnd, uMsg, wParam, lParam);
 }
 
 bool WindowProcImpl(
