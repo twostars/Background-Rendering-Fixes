@@ -281,7 +281,9 @@ void WriteLogEx(int logLevel, const wchar_t* fmt, va_list args)
 		fclose(fp);
 	}
 
+#ifdef _DEBUG
 	wchar_t buffer[1024] = { 0 };
-	vswprintf(buffer, fmt, args);
+	vswprintf_s(buffer, fmt, args);
 	OutputDebugStringW(buffer);
+#endif
 }
