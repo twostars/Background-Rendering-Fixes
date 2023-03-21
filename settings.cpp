@@ -65,6 +65,32 @@ bool Settings::Load(const wchar_t* processName, const wchar_t* configPath)
 		CreateDefault(configPath);
 	}
 
+	// External DLL loads are enabled by default.
+	UINT dllLoadsEnabled = GetPrivateProfileIntW(processName, L"DllLoadsEnabled", 1, configPath);
+	if (dllLoadsEnabled)
+	{
+		std::wstring sectionName = processName;
+		sectionName += L".DllLoads";
+
+		const size_t BufferSize = 32767;
+		wchar_t sectionData[BufferSize] = {};
+
+		DWORD copiedCharacters = GetPrivateProfileSectionW(sectionName.c_str(), sectionData, BufferSize, configPath);
+		if (copiedCharacters > 0
+			&& copiedCharacters <= (BufferSize - 2))
+		{
+			const wchar_t* p = sectionData;
+			while (L'\0' != *p)
+			{
+				std::filesystem::path dllPath(p);
+				if (std::filesystem::exists(dllPath))
+					LoadLibraryW(dllPath.wstring().c_str());
+
+				p += (wcslen(p) + 1);
+			}
+		}
+	}
+
 	UINT enabled = GetPrivateProfileIntW(processName, L"Enabled", UINT_MAX, configPath);
 	if (enabled == 0)
 		return false;
